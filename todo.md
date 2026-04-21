@@ -78,7 +78,7 @@
 - [x] Connect Case Management to backend
 - [x] Connect Client Management to backend
 - [x] Connect Document Management to backend
-- [ ] Implement file upload UI with progress tracking
+- [x] Implement file upload UI with progress tracking
 - [ ] Implement real-time collaborator UI
 - [x] Add loading states and error handling
 

@@ -6,7 +6,8 @@ import { AlertCircle, CheckCircle2, Clock, TrendingUp, Upload, Zap, Loader2 } fr
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { useLocation } from 'wouter';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { FileUploadDialog } from '@/components/FileUploadDialog';
 import {
   MOCK_WORKFLOWS,
   MOCK_AGENT_ACTIVITIES,
@@ -24,8 +25,10 @@ import {
  * Integrates with backend APIs for live data
  */
 export default function Dashboard() {
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const { loading: authLoading } = useAuth();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function Dashboard() {
 
   // Fetch contracts from backend
   const { data: contracts, isLoading: contractsLoading, error: contractsError } = trpc.contracts.list.useQuery(undefined, {
-    enabled: isAuthenticated && !authLoading,
+    enabled: isAuthenticated,
   });
 
   // Show loading state during auth check
@@ -61,8 +64,7 @@ export default function Dashboard() {
   }, 0);
 
   const handleUploadClick = () => {
-    // TODO: Implement file upload modal
-    alert('File upload feature coming soon');
+    setUploadDialogOpen(true);
   };
 
   return (
@@ -262,6 +264,17 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* File Upload Dialog */}
+      <FileUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onSuccess={() => {
+          // Refresh contracts list
+          // TODO: Add invalidation
+        }}
+        documentType="contract"
+      />
     </div>
   );
 }
