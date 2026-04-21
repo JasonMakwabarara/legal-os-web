@@ -5,10 +5,11 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, ArrowLeft, CheckCircle2, Download, Eye, FileText, Loader2 } from 'lucide-react';
 import { useLocation, useParams } from 'wouter';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { formatCurrency, getContractStatusLabel } from '@/lib/mock-data';
+import { CollaborationPanel } from '@/components/CollaborationPanel';
 
 /**
  * Contract Detail Page
@@ -18,10 +19,11 @@ import { formatCurrency, getContractStatusLabel } from '@/lib/mock-data';
  * - Approval workflow interface
  */
 export default function ContractDetail() {
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams();
   const contractId = params?.id ? parseInt(params.id) : null;
+  const [collaborationMessages, setCollaborationMessages] = useState<any[]>([]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -53,6 +55,47 @@ export default function ContractDetail() {
     { contractId },
     { enabled: isAuthenticated && !!contract }
   );
+
+  // Mock collaborators data
+  const mockCollaborators = [
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      email: 'sarah@lawfirm.com',
+      role: 'lawyer' as const,
+      isActive: true,
+      lastActivity: 'Just now',
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      email: 'michael@lawfirm.com',
+      role: 'paralegal' as const,
+      isActive: true,
+      lastActivity: 'Just now',
+    },
+    {
+      id: 3,
+      name: 'Jessica Martinez',
+      email: 'jessica@lawfirm.com',
+      role: 'lawyer' as const,
+      isActive: false,
+      lastActivity: '2 hours ago',
+    },
+  ];
+
+  const handleSendMessage = (message: string) => {
+    setCollaborationMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        author: user?.name || 'You',
+        content: message,
+        timestamp: new Date(),
+        type: 'comment',
+      },
+    ]);
+  };
 
   if (contractLoading) {
     return (
@@ -114,9 +157,9 @@ export default function ContractDetail() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Column: Document Viewer */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -195,8 +238,8 @@ export default function ContractDetail() {
             </Card>
           </div>
 
-          {/* Right Column: Approval Panel & Metadata */}
-          <div className="space-y-6">
+          {/* Right Column: Collaboration Panel & Metadata */}
+          <div className="space-y-6 lg:col-span-1">
             {/* Approval Panel */}
             <Card className="border-l-4 border-l-accent">
               <CardHeader>
@@ -269,6 +312,18 @@ export default function ContractDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Collaboration Panel */}
+            <CollaborationPanel
+              contractId={contractId || 0}
+              collaborators={mockCollaborators}
+              messages={collaborationMessages}
+              onSendMessage={handleSendMessage}
+              onAddCollaborator={(email) => {
+                console.log('Add collaborator:', email);
+                // TODO: Implement add collaborator API call
+              }}
+            />
           </div>
         </div>
       </main>
