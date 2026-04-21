@@ -2,87 +2,83 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Plus, Search, Users, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Users, Mail, Phone, MapPin, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 
 /**
  * Client Management Page
- * Design Philosophy: Modern Professional with Legal Authority
- * - Comprehensive client database and relationship management
- * - Contact information and communication history
- * - Case and matter tracking per client
+ * Displays all clients with contact information and case tracking
+ * Integrates with backend APIs for live data
  */
-interface Client {
-  id: string;
-  name: string;
-  type: 'individual' | 'corporate';
-  email: string;
-  phone: string;
-  location: string;
-  status: 'active' | 'inactive';
-  activeCases: number;
-  lastContact: string;
-}
-
-const MOCK_CLIENTS: Client[] = [
-  {
-    id: 'client-001',
-    name: 'TechCorp Inc',
-    type: 'corporate',
-    email: 'legal@techcorp.com',
-    phone: '+1 (555) 123-4567',
-    location: 'San Francisco, CA',
-    status: 'active',
-    activeCases: 3,
-    lastContact: '2026-04-19',
-  },
-  {
-    id: 'client-002',
-    name: 'Global Partners LLC',
-    type: 'corporate',
-    email: 'contact@globalpartners.com',
-    phone: '+1 (555) 987-6543',
-    location: 'New York, NY',
-    status: 'active',
-    activeCases: 2,
-    lastContact: '2026-04-18',
-  },
-  {
-    id: 'client-003',
-    name: 'DataFlow Systems',
-    type: 'corporate',
-    email: 'legal@dataflow.com',
-    phone: '+1 (555) 456-7890',
-    location: 'Austin, TX',
-    status: 'active',
-    activeCases: 1,
-    lastContact: '2026-04-17',
-  },
-  {
-    id: 'client-004',
-    name: 'John Smith',
-    type: 'individual',
-    email: 'john.smith@email.com',
-    phone: '+1 (555) 234-5678',
-    location: 'Los Angeles, CA',
-    status: 'active',
-    activeCases: 1,
-    lastContact: '2026-04-20',
-  },
-];
-
 export default function ClientManagement() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'individual' | 'corporate'>('all');
 
-  const filteredClients = MOCK_CLIENTS.filter((c) => {
-    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || c.type === filterType;
-    return matchesSearch && matchesType;
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, authLoading, setLocation]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Fetch clients from backend
+  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = trpc.clients.list.useQuery(undefined, {
+    enabled: isAuthenticated,
   });
+
+  if (clientsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (clientsError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="border border-destructive/50 bg-destructive/10 max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error Loading Clients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Failed to load clients. Please try again.</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const filteredClients = clients.filter((c) => {
+    const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesSearch;
+  });
+
+  const getTypeColor = (type: string) => {
+    return type === 'corporate' ? 'bg-accent/10 text-accent' : 'bg-success/10 text-success';
+  };
+
+  const getStatusColor = (status: string) => {
+    return status === 'active' ? 'bg-success/10 text-success border-success/20' : 'bg-muted/50 text-muted-foreground border-muted/30';
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,7 +89,7 @@ export default function ClientManagement() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation('/')}
+              onClick={() => setLocation('/dashboard')}
               className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -103,37 +99,23 @@ export default function ClientManagement() {
                 <Users className="w-6 h-6 text-accent" />
                 Client Management
               </h1>
-              <p className="text-sm text-muted-foreground">Manage client relationships and matters</p>
+              <p className="text-sm text-muted-foreground">Manage client relationships and contact information</p>
             </div>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled>
               <Plus className="w-4 h-4 mr-2" />
-              Add Client
+              New Client
             </Button>
           </div>
 
-          {/* Search and Filter */}
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-64 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search clients by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              {(['all', 'individual', 'corporate'] as const).map((type) => (
-                <Button
-                  key={type}
-                  variant={filterType === type ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFilterType(type)}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Button>
-              ))}
-            </div>
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search clients by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
       </header>
@@ -148,66 +130,56 @@ export default function ClientManagement() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredClients.map((client) => (
               <Card key={client.id} className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Client Info */}
-                    <div className="md:col-span-2">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center flex-shrink-0">
-                          <Users className="w-5 h-5 text-accent" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground">{client.name}</h3>
-                          <Badge variant="outline" className="mt-1 text-xs">
-                            {client.type === 'corporate' ? 'Corporate' : 'Individual'}
+                  <div className="space-y-4">
+                    {/* Client Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground mb-1">{client.name}</h3>
+                        <div className="flex gap-2">
+                          <Badge className={getTypeColor(client.type)}>
+                            {client.type.toUpperCase()}
+                          </Badge>
+                          <Badge className={`${getStatusColor(client.status)} border`}>
+                            {client.status.toUpperCase()}
                           </Badge>
                         </div>
                       </div>
                     </div>
 
-                    {/* Contact Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <a href={`mailto:${client.email}`} className="text-accent hover:underline truncate">
-                          {client.email}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <a href={`tel:${client.phone}`} className="text-foreground hover:text-accent">
-                          {client.phone}
-                        </a>
-                      </div>
+                    {/* Contact Information */}
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      {client.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <a href={`mailto:${client.email}`} className="text-sm text-accent hover:underline truncate">
+                            {client.email}
+                          </a>
+                        </div>
+                      )}
+                      {client.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <a href={`tel:${client.phone}`} className="text-sm text-foreground hover:text-accent">
+                            {client.phone}
+                          </a>
+                        </div>
+                      )}
+                      {client.address && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <p className="text-sm text-muted-foreground">{client.address}</p>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Location */}
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Location</p>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <p className="font-medium text-foreground text-sm">{client.location}</p>
-                      </div>
-                    </div>
-
-                    {/* Status & Cases */}
-                    <div className="flex flex-col justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Status</p>
-                        <Badge
-                          className={client.status === 'active' ? 'bg-success/10 text-success border-success/20' : 'bg-muted/50 text-muted-foreground border-muted/30'}
-                          variant="outline"
-                        >
-                          {client.status.charAt(0).toUpperCase() + client.status.slice(1)}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Active Cases</p>
-                        <p className="font-semibold text-foreground text-lg">{client.activeCases}</p>
-                      </div>
+                    {/* Case Summary */}
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-2">Active Cases</p>
+                      <p className="text-lg font-semibold text-foreground">0</p>
                     </div>
                   </div>
                 </CardContent>

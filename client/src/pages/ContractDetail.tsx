@@ -3,9 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, ArrowLeft, CheckCircle2, Download, Eye, FileText } from 'lucide-react';
-import { useLocation } from 'wouter';
-import { MOCK_CONTRACTS, MOCK_RISK_ALERTS, formatCurrency, getContractStatusLabel } from '@/lib/mock-data';
+import { AlertCircle, ArrowLeft, CheckCircle2, Download, Eye, FileText, Loader2 } from 'lucide-react';
+import { useLocation, useParams } from 'wouter';
+import { useEffect } from 'react';
+import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { formatCurrency, getContractStatusLabel } from '@/lib/mock-data';
 
 /**
  * Contract Detail Page
@@ -15,9 +18,65 @@ import { MOCK_CONTRACTS, MOCK_RISK_ALERTS, formatCurrency, getContractStatusLabe
  * - Approval workflow interface
  */
 export default function ContractDetail() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
-  const contract = MOCK_CONTRACTS[0]; // Demo with first contract
-  const contractRisks = MOCK_RISK_ALERTS.filter((r) => r.contractId === contract.id);
+  const params = useParams();
+  const contractId = params?.id ? parseInt(params.id) : null;
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, authLoading, setLocation]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !contractId) {
+    return null;
+  }
+
+  // Fetch contract details
+  const { data: contract, isLoading: contractLoading, error: contractError } = trpc.contracts.getById.useQuery(
+    { id: contractId },
+    { enabled: isAuthenticated }
+  );
+
+  // Fetch contract risks
+  const { data: risks = [] } = trpc.contracts.getRisks.useQuery(
+    { contractId },
+    { enabled: isAuthenticated && !!contract }
+  );
+
+  if (contractLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (contractError || !contract) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="border border-destructive/50 bg-destructive/10 max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Contract Not Found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">The contract you're looking for doesn't exist or you don't have access to it.</p>
+            <Button variant="outline" onClick={() => setLocation('/dashboard')}>Back to Dashboard</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,17 +87,17 @@ export default function ContractDetail() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation('/')}
+              onClick={() => setLocation('/dashboard')}
               className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-foreground">{contract.name}</h1>
-              <p className="text-sm text-muted-foreground">{contract.client}</p>
+              <p className="text-sm text-muted-foreground">{contract.fileName}</p>
             </div>
             <Badge variant="outline" className="text-lg px-3 py-1">
-              {getContractStatusLabel(contract.status)}
+              {contract.status?.toUpperCase()}
             </Badge>
           </div>
 
@@ -109,7 +168,7 @@ export default function ContractDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {contractRisks.map((risk) => (
+                {risks && risks.length > 0 ? risks.map((risk) => (
                   <div key={risk.id} className="p-4 border border-border rounded-lg">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold text-foreground">{risk.issue}</h4>
@@ -126,10 +185,12 @@ export default function ContractDetail() {
                     <p className="text-sm text-muted-foreground mb-3">{risk.recommendation}</p>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">Estimated Exposure</span>
-                      <span className="font-semibold text-foreground">{formatCurrency(risk.exposure)}</span>
+                      <span className="font-semibold text-foreground">{formatCurrency(typeof risk.exposure === 'string' ? parseFloat(risk.exposure) : risk.exposure || 0)}</span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-sm text-muted-foreground">No risks identified</p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -162,12 +223,12 @@ export default function ContractDetail() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Client</p>
-                  <p className="font-medium text-foreground">{contract.client}</p>
+                  <p className="text-xs text-muted-foreground mb-1">File Name</p>
+                  <p className="font-medium text-foreground">{contract.fileName}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Upload Date</p>
-                  <p className="font-medium text-foreground">{contract.uploadDate}</p>
+                  <p className="font-medium text-foreground">{new Date(contract.uploadedAt).toLocaleDateString()}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Risk Level</p>
@@ -183,7 +244,7 @@ export default function ContractDetail() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Total Exposure</p>
-                  <p className="font-semibold text-foreground text-lg">{formatCurrency(contract.exposure)}</p>
+                  <p className="font-semibold text-foreground text-lg">{formatCurrency(typeof contract.totalExposure === 'string' ? parseFloat(contract.totalExposure) : contract.totalExposure || 0)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -197,13 +258,13 @@ export default function ContractDetail() {
                 <div className="p-3 bg-secondary/50 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">High Risk Issues</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {contractRisks.filter((r) => r.level === 'high').length}
+                    {risks?.filter((r) => r.level === 'high').length || 0}
                   </p>
                 </div>
                 <div className="p-3 bg-secondary/50 rounded-lg">
                   <p className="text-xs text-muted-foreground mb-1">Total Exposure</p>
                   <p className="text-lg font-bold text-foreground">
-                    {formatCurrency(contractRisks.reduce((sum, r) => sum + r.exposure, 0))}
+                    {formatCurrency(risks?.reduce((sum, r) => sum + (typeof r.exposure === 'string' ? parseFloat(r.exposure) : r.exposure || 0), 0) || 0)}
                   </p>
                 </div>
               </CardContent>

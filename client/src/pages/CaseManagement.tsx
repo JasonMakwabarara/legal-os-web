@@ -3,69 +3,74 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Search, Briefcase, Users, Calendar, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Briefcase, Users, Calendar, FileText, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
 
 /**
  * Case Management Page
- * Design Philosophy: Modern Professional with Legal Authority
- * - Comprehensive case tracking and management
- * - Team collaboration features
- * - Timeline and document organization
+ * Displays all cases with filtering and search
+ * Integrates with backend APIs for live data
  */
-interface Case {
-  id: string;
-  name: string;
-  caseNumber: string;
-  status: 'active' | 'closed' | 'on_hold';
-  priority: 'high' | 'medium' | 'low';
-  assignedTo: string;
-  dueDate: string;
-  documents: number;
-}
-
-const MOCK_CASES: Case[] = [
-  {
-    id: 'case-001',
-    name: 'Smith v. TechCorp Inc',
-    caseNumber: '2026-CV-1847',
-    status: 'active',
-    priority: 'high',
-    assignedTo: 'Sarah Johnson',
-    dueDate: '2026-05-15',
-    documents: 24,
-  },
-  {
-    id: 'case-002',
-    name: 'Contract Dispute - Global Partners',
-    caseNumber: '2026-CV-1848',
-    status: 'active',
-    priority: 'medium',
-    assignedTo: 'Michael Chen',
-    dueDate: '2026-06-01',
-    documents: 18,
-  },
-  {
-    id: 'case-003',
-    name: 'IP Litigation - DataFlow Systems',
-    caseNumber: '2026-CV-1849',
-    status: 'on_hold',
-    priority: 'medium',
-    assignedTo: 'Jennifer Lee',
-    dueDate: '2026-07-20',
-    documents: 31,
-  },
-];
-
 export default function CaseManagement() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
-  const filteredCases = MOCK_CASES.filter((c) => {
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, authLoading, setLocation]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Fetch cases from backend
+  const { data: cases = [], isLoading: casesLoading, error: casesError } = trpc.cases.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  if (casesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (casesError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="border border-destructive/50 bg-destructive/10 max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error Loading Cases</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Failed to load cases. Please try again.</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const filteredCases = cases.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.caseNumber.toLowerCase().includes(searchTerm.toLowerCase());
+      (c.caseNumber && c.caseNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesTab = activeTab === 'all' || c.status === activeTab;
     return matchesSearch && matchesTab;
   });
@@ -105,7 +110,7 @@ export default function CaseManagement() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setLocation('/')}
+              onClick={() => setLocation('/dashboard')}
               className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -117,7 +122,7 @@ export default function CaseManagement() {
               </h1>
               <p className="text-sm text-muted-foreground">Track and manage all active cases</p>
             </div>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled>
               <Plus className="w-4 h-4 mr-2" />
               New Case
             </Button>
@@ -163,7 +168,7 @@ export default function CaseManagement() {
                         {/* Case Info */}
                         <div className="md:col-span-2">
                           <h3 className="font-semibold text-foreground mb-1">{caseItem.name}</h3>
-                          <p className="text-sm text-muted-foreground mb-3">Case #{caseItem.caseNumber}</p>
+                          <p className="text-sm text-muted-foreground mb-3">Case #{caseItem.caseNumber || 'N/A'}</p>
                           <div className="flex gap-2">
                             <Badge className={`${getStatusColor(caseItem.status)} border`}>
                               {caseItem.status.replace('_', ' ').toUpperCase()}
@@ -187,7 +192,7 @@ export default function CaseManagement() {
                             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                               <Users className="w-4 h-4 text-accent" />
                             </div>
-                            <p className="font-medium text-foreground text-sm">{caseItem.assignedTo}</p>
+                            <p className="font-medium text-foreground text-sm">{caseItem.assignedTo ? `User #${caseItem.assignedTo}` : 'Unassigned'}</p>
                           </div>
                         </div>
 
@@ -197,14 +202,16 @@ export default function CaseManagement() {
                             <p className="text-xs text-muted-foreground mb-1">Due Date</p>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4 text-muted-foreground" />
-                              <p className="font-medium text-foreground text-sm">{caseItem.dueDate}</p>
+                              <p className="font-medium text-foreground text-sm">
+                                {caseItem.dueDate ? new Date(caseItem.dueDate).toLocaleDateString() : 'N/A'}
+                              </p>
                             </div>
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Documents</p>
                             <div className="flex items-center gap-2">
                               <FileText className="w-4 h-4 text-muted-foreground" />
-                              <p className="font-medium text-foreground text-sm">{caseItem.documents}</p>
+                              <p className="font-medium text-foreground text-sm">0</p>
                             </div>
                           </div>
                         </div>
