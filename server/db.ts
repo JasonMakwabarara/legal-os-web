@@ -13,6 +13,10 @@ import {
   workflows,
   auditLogs,
   firms,
+  clientCommunications,
+  notifications,
+  aiChatMessages,
+  aiChatConversations,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -272,4 +276,70 @@ export async function createFirm(data: typeof firms.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.insert(firms).values(data);
+}
+
+
+// Client Communication queries
+export async function getClientCommunications(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(clientCommunications).where(eq(clientCommunications.clientId, clientId));
+}
+
+export async function createClientCommunication(data: typeof clientCommunications.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(clientCommunications).values(data);
+}
+
+// Notification queries
+export async function getUserNotifications(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(notifications).where(eq(notifications.userId, userId));
+}
+
+export async function createNotification(data: typeof notifications.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(notifications).values(data);
+}
+
+export async function markNotificationAsRead(notificationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(notifications).set({ isRead: 1, readAt: new Date() }).where(eq(notifications.id, notificationId));
+}
+
+// AI Chat Conversation queries
+export async function getAIChatConversation(conversationId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(aiChatConversations).where(eq(aiChatConversations.id, conversationId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserAIChatConversations(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(aiChatConversations).where(eq(aiChatConversations.userId, userId));
+}
+
+export async function createAIChatConversation(data: typeof aiChatConversations.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(aiChatConversations).values(data);
+}
+
+// AI Chat Message queries
+export async function getAIChatMessages(conversationId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(aiChatMessages).where(eq(aiChatMessages.conversationId, conversationId));
+}
+
+export async function createAIChatMessage(data: typeof aiChatMessages.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(aiChatMessages).values(data);
 }

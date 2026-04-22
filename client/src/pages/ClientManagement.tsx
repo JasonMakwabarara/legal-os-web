@@ -7,6 +7,7 @@ import { useLocation } from 'wouter';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { ClientCommunicationHistory } from '@/components/ClientCommunicationHistory';
 
 /**
  * Client Management Page
@@ -17,6 +18,8 @@ export default function ClientManagement() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [selectedClientName, setSelectedClientName] = useState<string>('');
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -130,9 +133,20 @@ export default function ClientManagement() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredClients.map((client) => (
-              <Card key={client.id} className="hover:shadow-md transition-shadow cursor-pointer">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Clients List */}
+            <div className="lg:col-span-2 space-y-4">
+              {filteredClients.map((client) => (
+                <Card
+                  key={client.id}
+                  className={`hover:shadow-md transition-all cursor-pointer ${
+                    selectedClientId === client.id ? 'ring-2 ring-accent' : ''
+                  }`}
+                  onClick={() => {
+                    setSelectedClientId(client.id);
+                    setSelectedClientName(client.name);
+                  }}
+                >
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {/* Client Header */}
@@ -184,7 +198,18 @@ export default function ClientManagement() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))}
+            </div>
+
+            {/* Communication History Sidebar */}
+            {selectedClientId && (
+              <div className="lg:col-span-1">
+                <ClientCommunicationHistory
+                  clientId={selectedClientId}
+                  clientName={selectedClientName}
+                />
+              </div>
+            )}
           </div>
         )}
       </main>

@@ -141,6 +141,167 @@ export const appRouter = router({
         return db.getDocumentsByContract(input.contractId);
       }),
   }),
+
+  // AI Analysis router
+  analysis: router({
+    analyzeContract: protectedProcedure
+      .input(z.object({ contractId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const contract = await db.getContractById(input.contractId, ctx.user.firmId);
+        if (!contract) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
+        }
+        // TODO: Implement AI contract analysis using LLM
+        return {
+          summary: 'Contract analysis in progress...',
+          keyTerms: ['Payment Terms', 'Liability', 'Termination'],
+          recommendations: ['Review liability clause', 'Clarify payment terms'],
+          status: 'analyzing',
+        };
+      }),
+
+    assessRisks: protectedProcedure
+      .input(z.object({ contractId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const contract = await db.getContractById(input.contractId, ctx.user.firmId);
+        if (!contract) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
+        }
+        // TODO: Implement AI risk assessment using LLM
+        return {
+          highRisks: [
+            { issue: 'Unlimited liability clause', exposure: 500000, recommendation: 'Add cap on liability' },
+            { issue: 'Vague termination clause', exposure: 250000, recommendation: 'Define termination conditions' },
+          ],
+          mediumRisks: [
+            { issue: 'Payment terms unclear', exposure: 100000, recommendation: 'Specify payment schedule' },
+          ],
+          totalExposure: 850000,
+          status: 'assessed',
+        };
+      }),
+  }),
+
+  // Communications router
+  communications: router({
+    getClientCommunications: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return db.getClientCommunications(input.clientId);
+      }),
+
+    addCommunication: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        type: z.enum(['email', 'call', 'meeting', 'note', 'document']),
+        subject: z.string().optional(),
+        content: z.string(),
+        participants: z.array(z.string()).optional(),
+        duration: z.number().optional(),
+        tags: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return db.createClientCommunication({
+          firmId: ctx.user.firmId,
+          clientId: input.clientId,
+          userId: ctx.user.id,
+          type: input.type,
+          subject: input.subject,
+          content: input.content,
+          participants: input.participants,
+          duration: input.duration,
+          tags: input.tags,
+        });
+      }),
+  }),
+
+  // Notifications router
+  notifications: router({
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        return db.getUserNotifications(ctx.user.id);
+      }),
+
+    markAsRead: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        return db.markNotificationAsRead(input.notificationId);
+      }),
+  }),
+
+  // AI Chat router
+  aiChat: router({
+    getConversations: protectedProcedure
+      .query(async ({ ctx }) => {
+        return db.getUserAIChatConversations(ctx.user.id);
+      }),
+
+    getMessages: protectedProcedure
+      .input(z.object({ conversationId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        return db.getAIChatMessages(input.conversationId);
+      }),
+
+    startConversation: protectedProcedure
+      .input(z.object({ title: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        return db.createAIChatConversation({
+          id: conversationId,
+          firmId: ctx.user.firmId,
+          userId: ctx.user.id,
+          title: input.title || 'New Conversation',
+          model: 'qwen-3.5',
+        });
+      }),
+
+    sendMessage: protectedProcedure
+      .input(z.object({
+        conversationId: z.string(),
+        content: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        // Store user message
+        await db.createAIChatMessage({
+          firmId: ctx.user.firmId,
+          userId: ctx.user.id,
+          conversationId: input.conversationId,
+          role: 'user',
+          content: input.content,
+          model: 'qwen-3.5',
+        });
+        // TODO: Call Qwen 3.5 LLM API and store assistant response
+        // For now, return mock response
+        const assistantResponse = 'This is a mock AI response. Integration with Qwen 3.5 coming soon.';
+        await db.createAIChatMessage({
+          firmId: ctx.user.firmId,
+          userId: ctx.user.id,
+          conversationId: input.conversationId,
+          role: 'assistant',
+          content: assistantResponse,
+          model: 'qwen-3.5',
+        });
+        return { success: true, response: assistantResponse };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

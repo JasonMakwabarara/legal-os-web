@@ -9,6 +9,7 @@ import ContractDetail from "./pages/ContractDetail";
 import CaseManagement from "./pages/CaseManagement";
 import ClientManagement from "./pages/ClientManagement";
 import DocumentManagement from "./pages/DocumentManagement";
+import AIChatPage from "./pages/AIChatPage";
 import Home from "./pages/Home";
 
 /**
@@ -20,10 +21,12 @@ import Home from "./pages/Home";
  * 
  * Routes:
  * / - Landing page (unauthenticated) / Dashboard (authenticated)
+ * /dashboard - Dashboard (authenticated)
  * /contract/:id - Contract detail and analysis
  * /cases - Case management
  * /clients - Client management
  * /documents - Document management
+ * /ai-chat - AI legal assistant
  */
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -35,6 +38,7 @@ function Router() {
       <Route path={"/cases"} component={CaseManagement} />
       <Route path={"/clients"} component={ClientManagement} />
       <Route path={"/documents"} component={DocumentManagement} />
+      <Route path={"/ai-chat"} component={AIChatPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

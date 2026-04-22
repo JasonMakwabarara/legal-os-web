@@ -89,13 +89,13 @@ export default function Dashboard() {
           {/* Command Bar */}
           <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm" className="text-xs">
-              /analyze contract
+              Analyze Contract
             </Button>
             <Button variant="outline" size="sm" className="text-xs">
-              /explore due diligence
+              Explore Due Diligence
             </Button>
             <Button variant="outline" size="sm" className="text-xs">
-              /prepare case strategy
+              Prepare Case Strategy
             </Button>
           </div>
         </div>

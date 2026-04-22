@@ -15,6 +15,13 @@
       "when": 1776746104671,
       "tag": "0001_glossy_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1776834244286,
+      "tag": "0002_volatile_silver_surfer",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json, tinyint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -229,3 +229,87 @@ export const auditLogs = mysqlTable("auditLogs", {
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+/**
+ * Client Communication History table - tracks all communications with clients
+ */
+export const clientCommunications = mysqlTable("clientCommunications", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  clientId: int("clientId").notNull(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["email", "call", "meeting", "note", "document"]).notNull(),
+  subject: varchar("subject", { length: 255 }),
+  content: text("content").notNull(),
+  participants: json("participants"), // Array of participant names/emails
+  duration: int("duration"), // Duration in minutes for calls/meetings
+  attachments: json("attachments"), // Array of file URLs
+  followUpDate: timestamp("followUpDate"),
+  tags: json("tags"), // Array of tags for categorization
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClientCommunication = typeof clientCommunications.$inferSelect;
+export type InsertClientCommunication = typeof clientCommunications.$inferInsert;
+
+/**
+ * Notifications table - stores user notifications for deadlines and updates
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["deadline", "case_update", "contract_review", "collaboration", "system"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  relatedEntityType: varchar("relatedEntityType", { length: 50 }), // contract, case, document, etc.
+  relatedEntityId: int("relatedEntityId"),
+  priority: mysqlEnum("priority", ["low", "medium", "high"]).default("medium").notNull(),
+  isRead: tinyint("isRead").default(0).notNull(),
+  actionUrl: varchar("actionUrl", { length: 255 }),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * AI Chat Messages table - stores conversation history for AI legal assistant
+ */
+export const aiChatMessages = mysqlTable("aiChatMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  conversationId: varchar("conversationId", { length: 64 }).notNull(),
+  role: mysqlEnum("role", ["user", "assistant"]).notNull(),
+  content: text("content").notNull(),
+  model: varchar("model", { length: 50 }).default("qwen-3.5").notNull(),
+  tokens: int("tokens"),
+  metadata: json("metadata"), // Additional context like referenced documents
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AIChatMessage = typeof aiChatMessages.$inferSelect;
+export type InsertAIChatMessage = typeof aiChatMessages.$inferInsert;
+
+/**
+ * AI Chat Conversations table - groups messages into conversations
+ */
+export const aiChatConversations = mysqlTable("aiChatConversations", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }),
+  model: varchar("model", { length: 50 }).default("qwen-3.5").notNull(),
+  context: json("context"), // Firm data, documents, etc. for context
+  messageCount: int("messageCount").default(0).notNull(),
+  lastMessageAt: timestamp("lastMessageAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AIChatConversation = typeof aiChatConversations.$inferSelect;
+export type InsertAIChatConversation = typeof aiChatConversations.$inferInsert;
