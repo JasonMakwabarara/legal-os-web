@@ -68,6 +68,20 @@ export const appRouter = router({
         }
         return db.getContractCollaborators(input.contractId);
       }),
+
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1) }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const contracts = await db.getContractsByFirm(ctx.user.firmId);
+        const searchLower = input.query.toLowerCase();
+        return contracts.filter(c => 
+          c.name.toLowerCase().includes(searchLower) ||
+          c.description?.toLowerCase().includes(searchLower)
+        );
+      }),
   }),
 
   // Cases router
@@ -92,6 +106,20 @@ export const appRouter = router({
         }
         return caseRecord;
       }),
+
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1) }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const cases = await db.getCasesByFirm(ctx.user.firmId);
+        const searchLower = input.query.toLowerCase();
+        return cases.filter(c => 
+          c.name.toLowerCase().includes(searchLower) ||
+          c.description?.toLowerCase().includes(searchLower)
+        );
+      }),
   }),
 
   // Clients router
@@ -115,6 +143,21 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Client not found' });
         }
         return client;
+      }),
+
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1) }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const clients = await db.getClientsByFirm(ctx.user.firmId);
+        const searchLower = input.query.toLowerCase();
+        return clients.filter(c => 
+          c.name.toLowerCase().includes(searchLower) ||
+          c.email?.toLowerCase().includes(searchLower) ||
+          c.phone?.toLowerCase().includes(searchLower)
+        );
       }),
   }),
 

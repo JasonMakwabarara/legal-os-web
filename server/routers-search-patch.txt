@@ -1,0 +1,47 @@
+// Add these search procedures to contracts, cases, and clients routers
+
+// In contracts router, after getCollaborators:
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1) }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const contracts = await db.getContractsByFirm(ctx.user.firmId);
+        const searchLower = input.query.toLowerCase();
+        return contracts.filter(c => 
+          c.title.toLowerCase().includes(searchLower) ||
+          c.description?.toLowerCase().includes(searchLower)
+        );
+      }),
+
+// In cases router, after getById:
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1) }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const cases = await db.getCasesByFirm(ctx.user.firmId);
+        const searchLower = input.query.toLowerCase();
+        return cases.filter(c => 
+          c.title.toLowerCase().includes(searchLower) ||
+          c.description?.toLowerCase().includes(searchLower)
+        );
+      }),
+
+// In clients router, after getById:
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1) }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const clients = await db.getClientsByFirm(ctx.user.firmId);
+        const searchLower = input.query.toLowerCase();
+        return clients.filter(c => 
+          c.name.toLowerCase().includes(searchLower) ||
+          c.email?.toLowerCase().includes(searchLower) ||
+          c.phone?.toLowerCase().includes(searchLower)
+        );
+      }),
