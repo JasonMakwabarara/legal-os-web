@@ -11,6 +11,7 @@ import ClientManagement from "./pages/ClientManagement";
 import DocumentManagement from "./pages/DocumentManagement";
 import AIChatPage from "./pages/AIChatPage";
 import Home from "./pages/Home";
+import FirmSetup from "./pages/FirmSetup";
 
 /**
  * Legal OS Application Router
@@ -33,6 +34,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/firm-setup"} component={FirmSetup} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/contract/:id"} component={ContractDetail} />
       <Route path={"/cases"} component={CaseManagement} />

@@ -302,6 +302,50 @@ export const appRouter = router({
         return { success: true, response: assistantResponse };
       }),
   }),
+
+  // Firms router
+  firms: router({
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1, 'Firm name is required'),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        website: z.string().url().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Check if user already has a firm
+        if (ctx.user.firmId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'User already assigned to a firm' });
+        }
+
+        // Create new firm
+        const firm = await db.createFirm({
+          name: input.name,
+          email: input.email,
+          phone: input.phone,
+          address: input.address,
+          website: input.website,
+        });
+
+        // Assign user to firm
+        await db.assignUserToFirm(ctx.user.id, firm.id);
+
+        return firm;
+      }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        if (ctx.user.firmId !== input.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+        }
+        return db.getFirmById(input.id);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

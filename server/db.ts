@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -275,7 +275,16 @@ export async function getFirmById(firmId: number) {
 export async function createFirm(data: typeof firms.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.insert(firms).values(data);
+  const result = await db.insert(firms).values(data);
+  // Get the created firm
+  const created = await db.select().from(firms).orderBy(firms.id).limit(1);
+  return created[0];
+}
+
+export async function assignUserToFirm(userId: number, firmId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(users).set({ firmId }).where(eq(users.id, userId));
 }
 
 
