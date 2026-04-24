@@ -405,6 +405,139 @@ export const appRouter = router({
         return db.getFirmById(input.id);
       }),
   }),
+
+  // Document Drafting router
+  documentDrafts: router({
+    list: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return db.getDocumentDrafts(ctx.user.firmId);
+      }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const draft = await db.getDocumentDraftById(input.id);
+        if (!draft || draft.firmId !== ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+        }
+        return draft;
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        templateId: z.string(),
+        templateName: z.string(),
+        title: z.string(),
+        content: z.string(),
+        variables: z.record(z.string(), z.string()),
+        caseId: z.number().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return db.createDocumentDraft({
+          firmId: ctx.user.firmId,
+          userId: ctx.user.id,
+          templateId: input.templateId,
+          templateName: input.templateName,
+          title: input.title,
+          content: input.content,
+          variables: input.variables,
+          caseId: input.caseId,
+          status: 'draft',
+        });
+      }),
+
+    approve: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const draft = await db.getDocumentDraftById(input.id);
+        if (!draft || draft.firmId !== ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+        }
+        return db.updateDocumentDraft(input.id, {
+          status: 'approved',
+          approvedBy: ctx.user.id,
+          approvedAt: new Date(),
+        });
+      }),
+  }),
+
+  // E-Signature router
+  eSignatures: router({
+    getByDocument: protectedProcedure
+      .input(z.object({ documentId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        return db.getESignatures(input.documentId);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        documentId: z.number(),
+        signerName: z.string(),
+        signerEmail: z.string().email(),
+        signatureImage: z.string(),
+        ipAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        // Generate signature hash
+        const crypto = require('crypto');
+        const signatureHash = crypto.createHash('sha256').update(input.signatureImage).digest('hex');
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+
+        const signature = await db.createESignature({
+          firmId: ctx.user.firmId,
+          documentId: input.documentId,
+          signerId: ctx.user.id,
+          signerName: input.signerName,
+          signerEmail: input.signerEmail,
+          signatureImage: input.signatureImage,
+          signatureHash,
+          ipAddress: input.ipAddress,
+          userAgent: ctx.req.headers['user-agent'] || '',
+          status: 'signed',
+          signedAt: new Date(),
+          verificationToken,
+          isVerified: 1,
+        });
+
+        // Create audit trail entry
+        await db.createSignatureAuditEntry({
+          firmId: ctx.user.firmId,
+          signatureId: (signature as any).insertId,
+          event: 'signed',
+          details: { signer: input.signerName, email: input.signerEmail },
+          ipAddress: input.ipAddress,
+          userAgent: ctx.req.headers['user-agent'] || '',
+        });
+
+        return signature;
+      }),
+
+    verify: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const signature = await db.getESignatureById(input.id);
+        if (!signature || signature.firmId !== ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
+        }
+        await db.updateESignature(input.id, { isVerified: 1 });
+        await db.createSignatureAuditEntry({
+          firmId: ctx.user.firmId,
+          signatureId: input.id,
+          event: 'verified',
+          ipAddress: ctx.req.headers['x-forwarded-for'] as string || '',
+        });
+        return { verified: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

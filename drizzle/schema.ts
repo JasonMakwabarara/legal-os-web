@@ -313,3 +313,72 @@ export const aiChatConversations = mysqlTable("aiChatConversations", {
 
 export type AIChatConversation = typeof aiChatConversations.$inferSelect;
 export type InsertAIChatConversation = typeof aiChatConversations.$inferInsert;
+
+
+/**
+ * Document Drafts table - stores AI-generated document drafts
+ */
+export const documentDrafts = mysqlTable("documentDrafts", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  documentId: int("documentId"),
+  caseId: int("caseId"),
+  templateId: varchar("templateId", { length: 50 }).notNull(),
+  templateName: varchar("templateName", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  variables: json("variables"), // Template variables used
+  status: mysqlEnum("status", ["draft", "review", "approved", "rejected"]).default("draft").notNull(),
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+  approvedBy: int("approvedBy"),
+  approvedAt: timestamp("approvedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DocumentDraft = typeof documentDrafts.$inferSelect;
+export type InsertDocumentDraft = typeof documentDrafts.$inferInsert;
+
+/**
+ * E-Signatures table - stores digital signatures for documents
+ */
+export const eSignatures = mysqlTable("eSignatures", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  documentId: int("documentId").notNull(),
+  signerId: int("signerId").notNull(),
+  signerName: varchar("signerName", { length: 255 }).notNull(),
+  signerEmail: varchar("signerEmail", { length: 320 }).notNull(),
+  signatureImage: text("signatureImage"), // Base64 encoded signature
+  signatureHash: varchar("signatureHash", { length: 255 }).notNull(), // SHA-256 hash
+  ipAddress: varchar("ipAddress", { length: 45 }).notNull(),
+  userAgent: text("userAgent"),
+  status: mysqlEnum("status", ["pending", "signed", "rejected"]).default("pending").notNull(),
+  signedAt: timestamp("signedAt"),
+  rejectionReason: text("rejectionReason"),
+  verificationToken: varchar("verificationToken", { length: 255 }).notNull(),
+  isVerified: tinyint("isVerified").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ESignature = typeof eSignatures.$inferSelect;
+export type InsertESignature = typeof eSignatures.$inferInsert;
+
+/**
+ * Signature Audit Trail table - tracks all signature events for compliance
+ */
+export const signatureAuditTrail = mysqlTable("signatureAuditTrail", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  signatureId: int("signatureId").notNull(),
+  event: varchar("event", { length: 100 }).notNull(), // "created", "viewed", "signed", "verified", etc.
+  details: json("details"), // Additional event details
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: text("userAgent"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SignatureAuditTrail = typeof signatureAuditTrail.$inferSelect;
+export type InsertSignatureAuditTrail = typeof signatureAuditTrail.$inferInsert;

@@ -17,6 +17,9 @@ import {
   notifications,
   aiChatMessages,
   aiChatConversations,
+  documentDrafts,
+  eSignatures,
+  signatureAuditTrail,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -351,4 +354,72 @@ export async function createAIChatMessage(data: typeof aiChatMessages.$inferInse
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.insert(aiChatMessages).values(data);
+}
+
+
+// Document Draft queries
+export async function getDocumentDrafts(firmId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(documentDrafts).where(eq(documentDrafts.firmId, firmId));
+}
+
+export async function getDocumentDraftById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(documentDrafts).where(eq(documentDrafts.id, id));
+  return result[0] || null;
+}
+
+export async function createDocumentDraft(data: typeof documentDrafts.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(documentDrafts).values(data);
+  return result;
+}
+
+export async function updateDocumentDraft(id: number, data: Partial<typeof documentDrafts.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(documentDrafts).set(data).where(eq(documentDrafts.id, id));
+}
+
+// E-Signature queries
+export async function getESignatures(documentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(eSignatures).where(eq(eSignatures.documentId, documentId));
+}
+
+export async function getESignatureById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(eSignatures).where(eq(eSignatures.id, id));
+  return result[0] || null;
+}
+
+export async function createESignature(data: typeof eSignatures.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(eSignatures).values(data);
+  return result;
+}
+
+export async function updateESignature(id: number, data: Partial<typeof eSignatures.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(eSignatures).set(data).where(eq(eSignatures.id, id));
+}
+
+// Signature Audit Trail queries
+export async function getSignatureAuditTrail(signatureId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(signatureAuditTrail).where(eq(signatureAuditTrail.signatureId, signatureId));
+}
+
+export async function createSignatureAuditEntry(data: typeof signatureAuditTrail.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(signatureAuditTrail).values(data);
 }
