@@ -294,3 +294,22 @@
 - [ ] Implement calendar integrations
 - [ ] Add event notifications
 - [ ] Build calendar analytics
+
+
+## Phase 20: AI Document Drafting
+- [ ] Create document template management system
+- [ ] Build AI document generator with LLM integration
+- [ ] Implement template variable substitution
+- [ ] Add case data context to document generation
+- [ ] Create document preview and editing interface
+- [ ] Add document export (PDF, Word, etc.)
+
+## Phase 21: E-Signature Integration
+- [ ] Design secure e-signature workflow
+- [ ] Implement signature pad component
+- [ ] Add signer authentication and verification
+- [ ] Create signature storage and encryption
+- [ ] Build signature audit trail
+- [ ] Implement document signing workflow
+- [ ] Add multi-party signature support
+- [ ] Create signature verification system
