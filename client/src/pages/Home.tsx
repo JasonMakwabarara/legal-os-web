@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,8 +26,13 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      setLocation("/dashboard");
+    }
+  }, [isAuthenticated, loading, setLocation]);
+
   if (isAuthenticated && !loading) {
-    setLocation("/dashboard");
     return null;
   }
 

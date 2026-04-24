@@ -11,6 +11,22 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    initializeFirm: protectedProcedure
+      .input(z.object({ firmName: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        // Only admins can initialize firms
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Only admins can create firms' });
+        }
+        // If user already has a firm, return it
+        if (ctx.user.firmId) {
+          return { firmId: ctx.user.firmId, message: 'User already assigned to firm' };
+        }
+        // Create new firm and assign user
+        const firm = await db.createFirm({ name: input.firmName });
+        await db.assignUserToFirm(ctx.user.id, firm.id);
+        return { firmId: firm.id, message: 'Firm created and user assigned' };
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
