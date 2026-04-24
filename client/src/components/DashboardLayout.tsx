@@ -26,6 +26,8 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { HelpMenu } from "./HelpMenu";
+import { GlobalSearch } from "./GlobalSearch";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Page 1", path: "/" },
@@ -255,6 +257,21 @@ function DashboardLayoutContent({
                 </div>
               </div>
             </div>
+        {!isMobile && (
+          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+            <div className="flex-1 global-search">
+              <GlobalSearch />
+            </div>
+            <div className="flex items-center gap-2">
+              <HelpMenu />
+            </div>
+          </div>
+        )}
+        {isMobile && (
+          <div className="flex items-center gap-2">
+            <HelpMenu />
+          </div>
+        )}
           </div>
         )}
         <main className="flex-1 p-4">{children}</main>

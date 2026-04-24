@@ -4,6 +4,8 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
+import { GuidedTour } from "./components/GuidedTour";
 import Dashboard from "./pages/Dashboard";
 import ContractDetail from "./pages/ContractDetail";
 import CaseManagement from "./pages/CaseManagement";
@@ -12,6 +14,7 @@ import DocumentManagement from "./pages/DocumentManagement";
 import AIChatPage from "./pages/AIChatPage";
 import Home from "./pages/Home";
 import FirmSetup from "./pages/FirmSetup";
+import OnboardingWelcome from "./pages/OnboardingWelcome";
 
 /**
  * Legal OS Application Router
@@ -35,6 +38,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/firm-setup"} component={FirmSetup} />
+      <Route path={"/onboarding"} component={OnboardingWelcome} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/contract/:id"} component={ContractDetail} />
       <Route path={"/cases"} component={CaseManagement} />
@@ -56,15 +60,18 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-        switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      <OnboardingProvider>
+        <ThemeProvider
+          defaultTheme="dark"
+          switchable
+        >
+          <TooltipProvider>
+            <Toaster />
+            <GuidedTour />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+      </OnboardingProvider>
     </ErrorBoundary>
   );
 }
