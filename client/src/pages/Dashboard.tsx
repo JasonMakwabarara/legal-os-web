@@ -30,20 +30,24 @@ export default function Dashboard() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const { loading: authLoading } = useAuth();
 
-  // Redirect to login if not authenticated
+  // Redirect to login if not authenticated, or to firm setup if no firm
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      setLocation('/');
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        setLocation('/');
+      } else if (user && !user.firmId) {
+        setLocation('/firm-setup');
+      }
     }
-  }, [isAuthenticated, authLoading, setLocation]);
+  }, [isAuthenticated, authLoading, user, setLocation]);
 
   // Fetch contracts from backend
   const { data: contracts, isLoading: contractsLoading, error: contractsError } = trpc.contracts.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
-  // Show loading state during auth check
-  if (authLoading) {
+  // Show loading state during auth check or if redirecting
+  if (authLoading || (user && !user.firmId)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-accent" />

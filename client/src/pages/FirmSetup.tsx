@@ -39,7 +39,7 @@ export default function FirmSetup() {
   }
 
   // Create firm mutation
-  const createFirmMutation = (trpc.firms as any)?.create?.useMutation({
+  const createFirmMutation = trpc.firms.create.useMutation({
     onSuccess: () => {
       // Refresh user data to get firmId
       setLocation("/dashboard");
