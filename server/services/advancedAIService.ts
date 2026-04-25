@@ -119,23 +119,52 @@ export async function generateDueDiligenceReport(documentText: string, context: 
       messages: [
         {
           role: 'system',
-          content: `You are an expert legal due diligence analyst. Analyze documents and provide comprehensive due diligence reports identifying risks and recommendations.`,
+          content: `You are an expert legal due diligence analyst. Analyze documents and provide comprehensive due diligence reports identifying risks and recommendations. Return a JSON object with findings.`,
         },
         {
           role: 'user',
           content: `Please perform due diligence analysis on this document in the context of: ${context}\n\nDocument:\n${documentText}`,
         },
       ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'due_diligence_report',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              summary: { type: 'string' },
+              riskAreas: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    area: { type: 'string' },
+                    riskLevel: { type: 'string', enum: ['high', 'medium', 'low'] },
+                    findings: { type: 'string' },
+                    recommendations: { type: 'string' },
+                  },
+                  required: ['area', 'riskLevel', 'findings', 'recommendations'],
+                },
+              },
+              overallRiskScore: { type: 'number', minimum: 0, maximum: 100 },
+            },
+            required: ['summary', 'riskAreas', 'overallRiskScore'],
+            additionalProperties: false,
+          },
+        },
+      },
     });
 
     const content = response.choices[0]?.message.content;
     if (!content || typeof content !== 'string') throw new Error('No response from LLM');
 
-    // Parse response and structure as DueDiligenceReport
+    const parsed = JSON.parse(content);
     return {
-      summary: content,
-      riskAreas: [],
-      overallRiskScore: 0,
+      summary: parsed.summary,
+      riskAreas: parsed.riskAreas,
+      overallRiskScore: parsed.overallRiskScore,
     };
   } catch (error) {
     console.error('[AdvancedAI] Due diligence analysis failed:', error);
@@ -149,25 +178,46 @@ export async function generateLitigationStrategy(caseDescription: string, caseHi
       messages: [
         {
           role: 'system',
-          content: `You are an expert litigation strategist. Analyze case details and provide strategic recommendations for litigation approach.`,
+          content: `You are an expert litigation strategist. Analyze case details and provide strategic recommendations for litigation approach. Return a JSON object with strategy details.`,
         },
         {
           role: 'user',
           content: `Please develop a litigation strategy for this case:\n\nCase Description: ${caseDescription}\n\nCase History: ${caseHistory}`,
         },
       ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'litigation_strategy',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              caseStrength: { type: 'number', minimum: 0, maximum: 1 },
+              recommendedApproach: { type: 'string' },
+              keyArguments: { type: 'array', items: { type: 'string' } },
+              potentialChallenges: { type: 'array', items: { type: 'string' } },
+              estimatedOutcome: { type: 'string' },
+              recommendedActions: { type: 'array', items: { type: 'string' } },
+            },
+            required: ['caseStrength', 'recommendedApproach', 'keyArguments', 'potentialChallenges', 'estimatedOutcome', 'recommendedActions'],
+            additionalProperties: false,
+          },
+        },
+      },
     });
 
     const content = response.choices[0]?.message.content;
     if (!content || typeof content !== 'string') throw new Error('No response from LLM');
 
+    const parsed = JSON.parse(content);
     return {
-      caseStrength: 0.75,
-      recommendedApproach: content,
-      keyArguments: [],
-      potentialChallenges: [],
-      estimatedOutcome: '',
-      recommendedActions: [],
+      caseStrength: parsed.caseStrength,
+      recommendedApproach: parsed.recommendedApproach,
+      keyArguments: parsed.keyArguments,
+      potentialChallenges: parsed.potentialChallenges,
+      estimatedOutcome: parsed.estimatedOutcome,
+      recommendedActions: parsed.recommendedActions,
     };
   } catch (error) {
     console.error('[AdvancedAI] Litigation strategy generation failed:', error);
@@ -181,23 +231,53 @@ export async function predictCaseOutcome(caseData: any, historicalCases: any[]):
       messages: [
         {
           role: 'system',
-          content: `You are an expert legal outcome predictor. Based on case details and historical precedents, predict likely outcomes and probabilities.`,
+          content: `You are an expert legal outcome predictor. Based on case details and historical precedents, predict likely outcomes and probabilities. Return a JSON object with predictions.`,
         },
         {
           role: 'user',
           content: `Please predict the outcome for this case:\n\nCase Data: ${JSON.stringify(caseData)}\n\nSimilar Historical Cases: ${JSON.stringify(historicalCases)}`,
         },
       ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'case_outcome_prediction',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              winProbability: { type: 'number', minimum: 0, maximum: 1 },
+              settlementLikelihood: { type: 'number', minimum: 0, maximum: 1 },
+              estimatedDuration: { type: 'string' },
+              potentialOutcomes: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    outcome: { type: 'string' },
+                    probability: { type: 'number', minimum: 0, maximum: 1 },
+                    reasoning: { type: 'string' },
+                  },
+                  required: ['outcome', 'probability', 'reasoning'],
+                },
+              },
+            },
+            required: ['winProbability', 'settlementLikelihood', 'estimatedDuration', 'potentialOutcomes'],
+            additionalProperties: false,
+          },
+        },
+      },
     });
 
     const content = response.choices[0]?.message.content;
     if (!content || typeof content !== 'string') throw new Error('No response from LLM');
 
+    const parsed = JSON.parse(content);
     return {
-      winProbability: 0.65,
-      settlementLikelihood: 0.30,
-      estimatedDuration: '12-18 months',
-      potentialOutcomes: [],
+      winProbability: parsed.winProbability,
+      settlementLikelihood: parsed.settlementLikelihood,
+      estimatedDuration: parsed.estimatedDuration,
+      potentialOutcomes: parsed.potentialOutcomes,
       similarCases: historicalCases.map(c => ({
         caseId: c.id,
         title: c.title,

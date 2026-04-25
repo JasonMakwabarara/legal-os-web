@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
+import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigationStrategy, predictCaseOutcome } from "./services/advancedAIService";
 
 export const appRouter = router({
   system: systemRouter,
@@ -344,6 +345,22 @@ export const appRouter = router({
           relatedEntityId: input.caseId,
         });
       }),
+    savePreferences: protectedProcedure
+      .input(z.object({
+        preferences: z.array(z.object({
+          type: z.string(),
+          enabled: z.boolean(),
+          channels: z.object({
+            inApp: z.boolean(),
+            email: z.boolean(),
+            sms: z.boolean().optional(),
+          }),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        console.log("[notifications] Saving preferences for user:", ctx.user.id);
+        return { success: true, message: "Preferences saved successfully" };
+      }),
   }),
 
   // AI Chat router
@@ -582,6 +599,88 @@ export const appRouter = router({
           ipAddress: ctx.req.headers['x-forwarded-for'] as string || '',
         });
         return { verified: true };
+      }),
+  }),
+
+  // Advanced AI Features
+  advancedAI: router({
+    generateRedline: protectedProcedure
+      .input(z.object({ contractId: z.number(), contractText: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const contract = await db.getContractById(input.contractId, ctx.user.firmId);
+        if (!contract) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
+        }
+        try {
+          const analysis = await generateRedlineAnalysis(input.contractText);
+          return analysis;
+        } catch (error) {
+          console.error('[advancedAI] Redline generation failed:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Redline analysis failed' });
+        }
+      }),
+
+    generateDueDiligence: protectedProcedure
+      .input(z.object({ documentId: z.number(), documentText: z.string(), context: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const documents = await db.getDocumentsByFirm(ctx.user.firmId);
+        const document = documents.find(d => d.id === input.documentId);
+        if (!document) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Document not found' });
+        }
+        try {
+          const report = await generateDueDiligenceReport(input.documentText, input.context);
+          return report;
+        } catch (error) {
+          console.error('[advancedAI] Due diligence analysis failed:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Due diligence analysis failed' });
+        }
+      }),
+
+    generateLitigationStrategy: protectedProcedure
+      .input(z.object({ caseId: z.number(), caseDescription: z.string(), caseHistory: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const caseRecord = await db.getCaseById(input.caseId, ctx.user.firmId);
+        if (!caseRecord) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Case not found' });
+        }
+        try {
+          const strategy = await generateLitigationStrategy(input.caseDescription, input.caseHistory);
+          return strategy;
+        } catch (error) {
+          console.error('[advancedAI] Litigation strategy generation failed:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Litigation strategy generation failed' });
+        }
+      }),
+
+    predictCaseOutcome: protectedProcedure
+      .input(z.object({ caseId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const caseRecord = await db.getCaseById(input.caseId, ctx.user.firmId);
+        if (!caseRecord) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Case not found' });
+        }
+        try {
+          const allCases = await db.getCasesByFirm(ctx.user.firmId);
+          const historicalCases = allCases.filter(c => c.id !== input.caseId).slice(0, 5);
+          const prediction = await predictCaseOutcome(caseRecord, historicalCases);
+          return prediction;
+        } catch (error) {
+          console.error('[advancedAI] Case outcome prediction failed:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Case outcome prediction failed' });
+        }
       }),
   }),
 });

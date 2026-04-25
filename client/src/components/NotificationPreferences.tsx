@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Bell, Mail, MessageSquare } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface NotificationPreference {
   id: string;
@@ -74,10 +75,22 @@ export function NotificationPreferences() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    // TODO: Call API to save preferences
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const savePreferencesMutation = trpc.notifications.savePreferences.useMutation();
+
+  const handleSave = async () => {
+    try {
+      await savePreferencesMutation.mutateAsync({
+        preferences: preferences.map(p => ({
+          type: p.id as any,
+          enabled: p.enabled,
+          channels: p.channels,
+        })),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+    }
   };
 
   return (
@@ -135,8 +148,8 @@ export function NotificationPreferences() {
 
       <div className="flex justify-end gap-2">
         <Button variant="outline">Reset to Defaults</Button>
-        <Button onClick={handleSave}>
-          {saved ? '✓ Saved' : 'Save Preferences'}
+        <Button onClick={handleSave} disabled={savePreferencesMutation.isPending}>
+          {saved ? '✓ Saved' : savePreferencesMutation.isPending ? 'Saving...' : 'Save Preferences'}
         </Button>
       </div>
     </div>
