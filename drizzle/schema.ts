@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json, tinyint } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json, tinyint, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -382,3 +382,66 @@ export const signatureAuditTrail = mysqlTable("signatureAuditTrail", {
 
 export type SignatureAuditTrail = typeof signatureAuditTrail.$inferSelect;
 export type InsertSignatureAuditTrail = typeof signatureAuditTrail.$inferInsert;
+
+
+/**
+ * Legal Clauses Library - stores reusable legal clauses with categorization
+ */
+export const legalClauses = mysqlTable("legalClauses", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // "liability", "payment", "termination", "indemnification", etc.
+  subcategory: varchar("subcategory", { length: 100 }),
+  content: text("content").notNull(),
+  description: text("description"),
+  tags: json("tags"), // Array of tags for search
+  riskLevel: mysqlEnum("riskLevel", ["low", "medium", "high"]).default("medium"),
+  jurisdiction: varchar("jurisdiction", { length: 100 }), // "US", "UK", "EU", etc.
+  industry: varchar("industry", { length: 100 }), // "tech", "finance", "healthcare", etc.
+  createdBy: int("createdBy").notNull(),
+  usageCount: int("usageCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LegalClause = typeof legalClauses.$inferSelect;
+export type InsertLegalClause = typeof legalClauses.$inferInsert;
+
+/**
+ * Clause Usage Analytics - tracks when clauses are used in documents
+ */
+export const clauseUsageAnalytics = mysqlTable("clauseUsageAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  clauseId: int("clauseId").notNull(),
+  documentId: int("documentId"),
+  contractId: int("contractId"),
+  userId: int("userId").notNull(),
+  usageType: varchar("usageType", { length: 50 }).notNull(), // "created", "copied", "modified", "viewed"
+  context: json("context"), // Additional context about usage
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ClauseUsageAnalytic = typeof clauseUsageAnalytics.$inferSelect;
+export type InsertClauseUsageAnalytic = typeof clauseUsageAnalytics.$inferInsert;
+
+/**
+ * Real-Time Notifications - for WebSocket-based notifications
+ */
+export const realtimeNotifications = mysqlTable("realtimeNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // "document_shared", "access_revoked", "collaboration_invite", etc.
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  relatedEntityType: varchar("relatedEntityType", { length: 50 }), // "document", "collaboration", "contract", etc.
+  relatedEntityId: int("relatedEntityId"),
+  isRead: tinyint("isRead").default(0).notNull(),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RealtimeNotification = typeof realtimeNotifications.$inferSelect;
+export type InsertRealtimeNotification = typeof realtimeNotifications.$inferInsert;

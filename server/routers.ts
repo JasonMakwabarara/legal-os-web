@@ -7,6 +7,7 @@ import * as db from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigationStrategy, predictCaseOutcome } from "./services/advancedAIService";
+import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
 
 export const appRouter = router({
   system: systemRouter,
@@ -616,6 +617,23 @@ export const appRouter = router({
           throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
         }
         console.log('[collaboration] Sharing document', input.documentId, 'with', input.recipientEmail);
+        
+        // Create real-time notification for the recipient
+        try {
+          await db.createNotification({
+            firmId: ctx.user.firmId,
+            userId: ctx.user.id,
+            type: 'collaboration',
+            title: 'Document Shared',
+            message: `A document has been shared with you with ${input.accessLevel} access`,
+            priority: 'medium',
+            relatedEntityType: 'document',
+            relatedEntityId: input.documentId,
+          });
+        } catch (error) {
+          console.error('[collaboration] Failed to create notification:', error);
+        }
+        
         return { success: true, message: 'Document shared successfully' };
       }),
 
@@ -631,6 +649,23 @@ export const appRouter = router({
       .input(z.object({ shareId: z.number() }))
       .mutation(async ({ ctx, input }) => {
         console.log('[collaboration] Revoking access for share', input.shareId);
+        
+        // Create real-time notification for access revocation
+        try {
+          await db.createNotification({
+            firmId: ctx.user.firmId || 0,
+            userId: ctx.user.id,
+            type: 'collaboration',
+            title: 'Access Revoked',
+            message: 'Your access to a shared document has been revoked',
+            priority: 'high',
+            relatedEntityType: 'document',
+            relatedEntityId: input.shareId,
+          });
+        } catch (error) {
+          console.error('[collaboration] Failed to create notification:', error);
+        }
+        
         return { success: true, message: 'Access revoked successfully' };
       }),
   }),
@@ -716,6 +751,12 @@ export const appRouter = router({
         }
       }),
   }),
+
+  // Legal Clauses Library
+  clauses: clausesRouter,
+
+  // Real-Time Notifications
+  realtimeNotifications: realtimeNotificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;
