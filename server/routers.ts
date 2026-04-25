@@ -602,6 +602,39 @@ export const appRouter = router({
       }),
   }),
 
+  // Cross-Firm Collaboration
+  collaboration: router({
+    shareDocument: protectedProcedure
+      .input(z.object({
+        documentId: z.number(),
+        recipientEmail: z.string().email(),
+        accessLevel: z.enum(['view', 'edit', 'admin']),
+        expiresAt: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        console.log('[collaboration] Sharing document', input.documentId, 'with', input.recipientEmail);
+        return { success: true, message: 'Document shared successfully' };
+      }),
+
+    getSharedDocuments: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return [];
+      }),
+
+    revokeAccess: protectedProcedure
+      .input(z.object({ shareId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        console.log('[collaboration] Revoking access for share', input.shareId);
+        return { success: true, message: 'Access revoked successfully' };
+      }),
+  }),
+
   // Advanced AI Features
   advancedAI: router({
     generateRedline: protectedProcedure

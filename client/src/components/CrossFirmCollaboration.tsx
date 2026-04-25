@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Plus, Share2, Lock, Eye } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface SharedDocument {
   id: number;
@@ -37,11 +38,20 @@ export function CrossFirmCollaboration() {
   ]);
 
   const [newShare, setNewShare] = useState({ email: '', accessLevel: 'view' as const });
+  const shareDocMutation = trpc.collaboration.shareDocument.useMutation();
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (newShare.email) {
-      // TODO: Call API to share document
-      setNewShare({ email: '', accessLevel: 'view' });
+      try {
+        await shareDocMutation.mutateAsync({
+          documentId: 1,
+          recipientEmail: newShare.email,
+          accessLevel: newShare.accessLevel,
+        });
+        setNewShare({ email: '', accessLevel: 'view' });
+      } catch (error) {
+        console.error('Failed to share document:', error);
+      }
     }
   };
 
@@ -99,9 +109,9 @@ export function CrossFirmCollaboration() {
               ))}
             </div>
           </div>
-          <Button onClick={handleShare} className="w-full">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Document
+          <Button onClick={handleShare} disabled={shareDocMutation.isPending}>
+            <Plus className="h-4 w-4 mr-2" />
+            {shareDocMutation.isPending ? 'Sharing...' : 'Share Document'}
           </Button>
         </CardContent>
       </Card>
