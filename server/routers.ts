@@ -298,6 +298,52 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         return db.markNotificationAsRead(input.notificationId);
       }),
+
+    createDeadlineAlert: protectedProcedure
+      .input(z.object({
+        contractId: z.number().optional(),
+        dueDate: z.date(),
+        title: z.string(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return db.createNotification({
+          firmId: ctx.user.firmId,
+          userId: ctx.user.id,
+          type: 'deadline',
+          title: input.title,
+          message: input.description || `Deadline: ${input.dueDate.toLocaleDateString()}`,
+          priority: 'high',
+          relatedEntityType: input.contractId ? 'contract' : undefined,
+          relatedEntityId: input.contractId,
+        });
+      }),
+
+    createCaseUpdateNotification: protectedProcedure
+      .input(z.object({
+        caseId: z.number(),
+        title: z.string(),
+        description: z.string(),
+        priority: z.enum(['high', 'medium', 'low']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        return db.createNotification({
+          firmId: ctx.user.firmId,
+          userId: ctx.user.id,
+          type: 'case_update',
+          title: input.title,
+          message: input.description,
+          priority: input.priority,
+          relatedEntityType: 'case',
+          relatedEntityId: input.caseId,
+        });
+      }),
   }),
 
   // AI Chat router

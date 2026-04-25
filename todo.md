@@ -99,8 +99,8 @@
 
 ## Phase 14: Notification System ✅
 - [x] Create notifications table in database
-- [ ] Implement deadline alert logic
-- [ ] Implement case update notifications
+- [x] Implement deadline alert logic
+- [x] Implement case update notifications
 - [x] Build notification center UI
 - [ ] Add notification preferences settings
 - [ ] Implement email notification delivery
