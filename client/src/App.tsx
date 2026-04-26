@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import { GuidedTour } from "./components/GuidedTour";
+import { useAuth } from "@/_core/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import ContractDetail from "./pages/ContractDetail";
 import CaseManagement from "./pages/CaseManagement";
@@ -18,6 +19,7 @@ import OnboardingWelcome from "./pages/OnboardingWelcome";
 import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
 import { TemplateApprovalDashboard } from "./components/TemplateApprovalDashboard";
 import { OnboardingTour, useOnboarding } from "./components/OnboardingTour";
+
 
 /**
  * Legal OS Application Router
@@ -64,10 +66,14 @@ function Router() {
 
 function AppContent() {
   const { shouldShowOnboarding, completeOnboarding } = useOnboarding();
+  const { isAuthenticated, loading } = useAuth();
+
+  // Only show onboarding for authenticated users
+  const showOnboarding = shouldShowOnboarding && isAuthenticated && !loading;
 
   return (
     <>
-      {shouldShowOnboarding && (
+      {showOnboarding && (
         <OnboardingTour onComplete={completeOnboarding} />
       )}
       <GuidedTour />
