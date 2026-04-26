@@ -30,14 +30,17 @@ export default function Dashboard() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const { loading: authLoading } = useAuth();
 
-  // Redirect to login if not authenticated, or to firm setup if no firm
+  // Redirect to login if not authenticated
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated) {
-        setLocation('/');
-      } else if (user && !user.firmId) {
-        setLocation('/firm-setup');
-      }
+    if (!authLoading && !isAuthenticated) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, authLoading, setLocation]);
+
+  // Redirect to firm setup if no firm (but only after auth is loaded)
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user && !user.firmId) {
+      setLocation('/firm-setup');
     }
   }, [isAuthenticated, authLoading, user, setLocation]);
 
@@ -46,8 +49,8 @@ export default function Dashboard() {
     enabled: isAuthenticated,
   });
 
-  // Show loading state during auth check or if redirecting
-  if (authLoading || (user && !user.firmId)) {
+  // Show loading state during auth check
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-accent" />
@@ -56,7 +59,7 @@ export default function Dashboard() {
   }
 
   // Redirect happens in useEffect, but show nothing while redirecting
-  if (!isAuthenticated) {
+  if (!isAuthenticated || (user && !user.firmId)) {
     return null;
   }
 

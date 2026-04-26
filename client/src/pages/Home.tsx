@@ -99,22 +99,22 @@ export default function Home() {
         />
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mb-6">
               Legal OS
               <span className="block text-accent mt-2">Powered by SpiderNetOS</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-8">
               An AI operating system for law firms that automates analysis, drafting, due diligence, and litigation preparation.
             </p>
-            <div className="flex gap-4 justify-center flex-wrap">
+            <div className="flex gap-3 justify-center flex-col sm:flex-row">
               <Button
                 size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto"
                 onClick={() => window.location.href = getLoginUrl()}
               >
-                Try Demo <ArrowRight className="w-4 h-4 ml-2" />
+                Start Your Free Trial <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
                 Watch Demo
               </Button>
             </div>
@@ -132,7 +132,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
@@ -151,7 +151,7 @@ export default function Home() {
       {/* Benefits Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-foreground mb-6">Why Law Firms Choose Legal OS</h2>
               <div className="space-y-4">
@@ -195,7 +195,7 @@ export default function Home() {
             <p className="text-muted-foreground">Choose the plan that fits your firm</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
               {
                 name: "Associate",
@@ -235,13 +235,13 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    className="w-full"
-                    variant={plan.highlighted ? "default" : "outline"}
-                    onClick={() => window.location.href = getLoginUrl()}
-                  >
-                    Get Started
-                  </Button>
+              <Button
+                className="w-full"
+                variant={plan.highlighted ? "default" : "outline"}
+                onClick={() => window.location.href = getLoginUrl()}
+              >
+                {plan.highlighted ? 'Start Free Trial' : 'Learn More'}
+              </Button>
                 </CardContent>
               </Card>
             ))}
@@ -253,15 +253,15 @@ export default function Home() {
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">Ready to Transform Your Law Practice?</h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join law firms using Legal OS to automate legal operations and increase profitability
-          </p>
+            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Join law firms using Legal OS to automate legal operations and increase profitability
+            </p>
           <Button
             size="lg"
             className="bg-accent hover:bg-accent/90 text-accent-foreground"
             onClick={() => window.location.href = getLoginUrl()}
           >
-            Start Free Demo <ArrowRight className="w-4 h-4 ml-2" />
+            Get Started - No Credit Card Required <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </section>

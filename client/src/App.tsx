@@ -19,7 +19,7 @@ import OnboardingWelcome from "./pages/OnboardingWelcome";
 import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
 import { TemplateApprovalDashboard } from "./components/TemplateApprovalDashboard";
 import { OnboardingTour, useOnboarding } from "./components/OnboardingTour";
-
+import BlogResources from "./pages/BlogResources";
 
 /**
  * Legal OS Application Router
@@ -52,6 +52,7 @@ function Router() {
       <Route path={"/ai-chat"} component={AIChatPage} />
       <Route path={"/template-builder"} component={ClauseTemplateBuilder} />
       <Route path={"/approvals"} component={TemplateApprovalDashboard} />
+      <Route path={"/blog"} component={BlogResources} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
