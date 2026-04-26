@@ -17,6 +17,7 @@ import FirmSetup from "./pages/FirmSetup";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
 import { TemplateApprovalDashboard } from "./components/TemplateApprovalDashboard";
+import { OnboardingTour, useOnboarding } from "./components/OnboardingTour";
 
 /**
  * Legal OS Application Router
@@ -61,6 +62,20 @@ function Router() {
 //   to keep consistent foreground/background color across components
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
+function AppContent() {
+  const { shouldShowOnboarding, completeOnboarding } = useOnboarding();
+
+  return (
+    <>
+      {shouldShowOnboarding && (
+        <OnboardingTour onComplete={completeOnboarding} />
+      )}
+      <GuidedTour />
+      <Router />
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -71,8 +86,7 @@ function App() {
         >
           <TooltipProvider>
             <Toaster />
-            <GuidedTour />
-            <Router />
+            <AppContent />
           </TooltipProvider>
         </ThemeProvider>
       </OnboardingProvider>

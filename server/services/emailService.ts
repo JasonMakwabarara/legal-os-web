@@ -4,15 +4,16 @@
  */
 
 import nodemailer from 'nodemailer';
+import { ENV } from '../_core/env';
 
 // Initialize email transporter (using environment variables)
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
+  host: ENV.smtpHost,
+  port: parseInt(ENV.smtpPort || '465'),
+  secure: true, // true for 465, false for other ports
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
+    user: ENV.smtpUser,
+    pass: ENV.smtpPassword,
   },
 });
 
@@ -25,13 +26,13 @@ export interface EmailNotification {
 
 export async function sendEmailNotification(email: EmailNotification): Promise<boolean> {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+    if (!ENV.smtpUser || !ENV.smtpPassword) {
       console.warn('[EmailService] SMTP credentials not configured, skipping email');
       return false;
     }
 
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@legal-os.com',
+      from: ENV.smtpFromEmail || 'noreply@legalosx.com',
       to: email.to,
       subject: email.subject,
       html: email.htmlContent,
@@ -40,6 +41,20 @@ export async function sendEmailNotification(email: EmailNotification): Promise<b
     return true;
   } catch (error) {
     console.error('[EmailService] Failed to send email:', error);
+    return false;
+  }
+}
+
+/**
+ * Test SMTP connection
+ */
+export async function testSMTPConnection(): Promise<boolean> {
+  try {
+    await transporter.verify();
+    console.log('[EmailService] SMTP connection verified successfully');
+    return true;
+  } catch (error) {
+    console.error('[EmailService] SMTP connection failed:', error);
     return false;
   }
 }
