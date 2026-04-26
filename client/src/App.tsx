@@ -15,6 +15,8 @@ import AIChatPage from "./pages/AIChatPage";
 import Home from "./pages/Home";
 import FirmSetup from "./pages/FirmSetup";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
+import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
+import { TemplateApprovalDashboard } from "./components/TemplateApprovalDashboard";
 
 /**
  * Legal OS Application Router
@@ -45,6 +47,8 @@ function Router() {
       <Route path={"/clients"} component={ClientManagement} />
       <Route path={"/documents"} component={DocumentManagement} />
       <Route path={"/ai-chat"} component={AIChatPage} />
+      <Route path={"/template-builder"} component={ClauseTemplateBuilder} />
+      <Route path={"/approvals"} component={TemplateApprovalDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
