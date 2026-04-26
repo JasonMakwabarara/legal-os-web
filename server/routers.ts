@@ -8,6 +8,7 @@ import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigationStrategy, predictCaseOutcome } from "./services/advancedAIService";
 import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
+import { templatesRouter } from "./routers-templates";
 
 export const appRouter = router({
   system: systemRouter,
@@ -757,6 +758,9 @@ export const appRouter = router({
 
   // Real-Time Notifications
   realtimeNotifications: realtimeNotificationsRouter,
+
+  // Clause Templates with Approval Workflow
+  templates: templatesRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -445,3 +445,78 @@ export const realtimeNotifications = mysqlTable("realtimeNotifications", {
 
 export type RealtimeNotification = typeof realtimeNotifications.$inferSelect;
 export type InsertRealtimeNotification = typeof realtimeNotifications.$inferInsert;
+
+/**
+ * Clause Templates - reusable templates for creating clauses
+ */
+export const clauseTemplates = mysqlTable("clauseTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(),
+  subcategory: varchar("subcategory", { length: 100 }),
+  content: text("content").notNull(),
+  components: json("components").$type<any>(), // Array of template components
+  tags: json("tags").$type<string[]>(),
+  riskLevel: varchar("riskLevel", { length: 20 }), // low, medium, high
+  jurisdiction: varchar("jurisdiction", { length: 100 }),
+  industry: varchar("industry", { length: 100 }),
+  isActive: tinyint("isActive").default(1),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClauseTemplate = typeof clauseTemplates.$inferSelect;
+export type InsertClauseTemplate = typeof clauseTemplates.$inferInsert;
+
+/**
+ * Clause Template Versions - tracks versions of templates
+ */
+export const clauseTemplateVersions = mysqlTable("clauseTemplateVersions", {
+  id: int("id").autoincrement().primaryKey(),
+  templateId: int("templateId").notNull(),
+  versionNumber: int("versionNumber").notNull(),
+  content: text("content").notNull(),
+  components: json("components").$type<any>(),
+  changeLog: text("changeLog"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ClauseTemplateVersion = typeof clauseTemplateVersions.$inferSelect;
+export type InsertClauseTemplateVersion = typeof clauseTemplateVersions.$inferInsert;
+
+/**
+ * Template Approvals - tracks approval workflow for template changes
+ */
+export const templateApprovals = mysqlTable("templateApprovals", {
+  id: int("id").autoincrement().primaryKey(),
+  templateId: int("templateId").notNull(),
+  versionId: int("versionId").notNull(),
+  status: varchar("status", { length: 20 }).notNull(), // pending, approved, rejected
+  requestedBy: int("requestedBy").notNull(),
+  approvedBy: int("approvedBy"),
+  rejectionReason: text("rejectionReason"),
+  requestedAt: timestamp("requestedAt").defaultNow().notNull(),
+  approvedAt: timestamp("approvedAt"),
+});
+
+export type TemplateApproval = typeof templateApprovals.$inferSelect;
+export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
+
+/**
+ * Template Approval Rules - defines approval requirements per category
+ */
+export const templateApprovalRules = mysqlTable("templateApprovalRules", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  requiredApprovals: int("requiredApprovals").notNull().default(1),
+  approverRoles: json("approverRoles").$type<string[]>(), // Array of roles that can approve
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TemplateApprovalRule = typeof templateApprovalRules.$inferSelect;
+export type InsertTemplateApprovalRule = typeof templateApprovalRules.$inferInsert;

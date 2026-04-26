@@ -36,6 +36,13 @@
       "when": 1777093391041,
       "tag": "0004_volatile_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1777188935481,
+      "tag": "0005_good_rogue",
+      "breakpoints": true
     }
   ]
 }
