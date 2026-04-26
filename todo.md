@@ -409,3 +409,49 @@
 ✅ WebSocket server fully configured
 ✅ LLM service integration complete
 ✅ Database schema finalized (25+ tables)
+
+
+## Test Accounts Created ✅
+
+### Test User Accounts (Firm ID: 1 - "Test Law Firm")
+- **Lawyer Account**
+  - Email: lawyer@testfirm.com
+  - Role: lawyer
+  - Name: Sarah Johnson
+  - Status: ✅ Created
+
+- **Paralegal Account**
+  - Email: paralegal@testfirm.com
+  - Role: paralegal
+  - Name: Michael Chen
+  - Status: ✅ Created
+
+- **User Account**
+  - Email: user@testfirm.com
+  - Role: user
+  - Name: Emma Davis
+  - Status: ✅ Created
+
+- **Admin Account**
+  - Email: admin@testfirm.com
+  - Role: admin
+  - Name: Admin User
+  - Status: ✅ Created
+
+### Login Instructions:
+1. Navigate to the Legal OS application
+2. Click "Login" or "Sign In"
+3. Use OAuth login with any of the test account emails above
+4. All accounts are pre-configured with the "Test Law Firm" organization
+5. No password required - OAuth handles authentication
+
+### Testing Scenarios:
+- **Lawyer Role:** Full access to contracts, cases, and AI features
+- **Paralegal Role:** Limited access to documents and case management
+- **User Role:** Basic access to assigned cases and documents
+- **Admin Role:** Full system access including firm settings and user management
+
+### Seed Script:
+- Location: `/home/ubuntu/legal-os-web/seed-test-accounts.mjs`
+- To re-run: `npm run seed:accounts` (after adding script to package.json)
+- Database: Connected via SSL to TiDB Serverless
