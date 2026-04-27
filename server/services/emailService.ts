@@ -126,3 +126,73 @@ export function generateCollaborationEmailHtml(
     </html>
   `;
 }
+
+
+// ============================================
+// Resend Integration for Invitation Emails
+// ============================================
+
+import { Resend } from 'resend';
+
+const resend = ENV.resendApiKey ? new Resend(ENV.resendApiKey) : null;
+
+export interface SendInvitationEmailParams {
+  recipientEmail: string;
+  recipientName: string;
+  firmName: string;
+  invitationLink: string;
+  inviterName: string;
+}
+
+/**
+ * Send invitation email using Resend
+ */
+export async function sendInvitationEmail(params: SendInvitationEmailParams) {
+  try {
+    if (!resend) {
+      console.warn('[EmailService] Resend API key not configured, skipping invitation email');
+      return { success: false, error: 'Resend not configured' };
+    }
+
+    const { recipientEmail, recipientName, firmName, invitationLink, inviterName } = params;
+
+    const result = await resend.emails.send({
+      from: 'noreply@legalosdemo.com',
+      to: recipientEmail,
+      subject: `You've been invited to ${firmName} on Legal OS`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Welcome to ${firmName}!</h2>
+          <p>Hi ${recipientName},</p>
+          <p>${inviterName} has invited you to join ${firmName} on Legal OS, an AI-powered legal practice management platform.</p>
+          
+          <div style="margin: 30px 0;">
+            <a href="${invitationLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Accept Invitation
+            </a>
+          </div>
+          
+          <p>Or copy and paste this link in your browser:</p>
+          <p><code>${invitationLink}</code></p>
+          
+          <p>This invitation will expire in 7 days.</p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;" />
+          <p style="color: #6b7280; font-size: 12px;">
+            If you didn't expect this invitation, you can ignore this email.
+          </p>
+        </div>
+      `,
+    });
+
+    if (result.error) {
+      console.error('[EmailService] Resend error:', result.error);
+      return { success: false, error: result.error.message };
+    }
+
+    return { success: true, messageId: result.data?.id };
+  } catch (error) {
+    console.error('[EmailService] Invitation email error:', error);
+    return { success: false, error: String(error) };
+  }
+}

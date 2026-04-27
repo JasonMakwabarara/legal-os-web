@@ -3,11 +3,12 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
   createFirmInvitation,
-  getInvitationByCode,
   acceptInvitation,
   listFirmInvitations,
   revokeInvitation,
+  getInvitationByCode,
 } from "./db-invitations";
+import { sendInvitationEmail } from "./services/emailService";
 
 export const invitationsRouter = router({
   /**
@@ -18,9 +19,10 @@ export const invitationsRouter = router({
       z.object({
         email: z.string().email().optional(),
         expiresInDays: z.number().int().min(1).max(365).optional(),
+        recipientName: z.string().optional(),
       })
     )
-    .mutation(async ({ ctx, input }: any) => {
+    .mutation(async ({ ctx, input }) => {
       if (!ctx.user.firmId) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -36,9 +38,24 @@ export const invitationsRouter = router({
           input.expiresInDays
         );
 
+        const inviteUrl = `${process.env.VITE_APP_URL || "http://localhost:5173"}/accept-invitation/${invitation.inviteCode}`;
+
+        // Send invitation email
+        const emailResult = await sendInvitationEmail({
+          recipientEmail: input.email || "",
+          recipientName: input.recipientName || "Team Member",
+          firmName: ctx.user.firmId?.toString() || "Our Firm",
+          invitationLink: inviteUrl,
+          inviterName: ctx.user.name || "Your colleague",
+        });
+
+        if (!emailResult.success) {
+          console.warn("Failed to send invitation email:", emailResult.error);
+        }
+
         return {
           ...invitation,
-          inviteUrl: `${process.env.VITE_APP_URL || "http://localhost:5173"}/accept-invitation/${invitation.inviteCode}`,
+          inviteUrl,
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -49,44 +66,14 @@ export const invitationsRouter = router({
     }),
 
   /**
-   * Get invitation details by code
-   */
-  getByCode: protectedProcedure
-    .input(z.object({ code: z.string() }))
-    .query(async ({ input }: any) => {
-      try {
-        const invitation = await getInvitationByCode(input.code);
-
-        if (!invitation) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Invitation not found",
-          });
-        }
-
-        return invitation;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error.message || "Failed to get invitation",
-        });
-      }
-    }),
-
-  /**
-   * Accept an invitation and join a firm
+   * Accept a firm invitation
    */
   accept: protectedProcedure
-    .input(z.object({ code: z.string() }))
-    .mutation(async ({ ctx, input }: any) => {
+    .input(z.object({ inviteCode: z.string() }))
+    .mutation(async ({ ctx, input }) => {
       try {
-        const invitation = await acceptInvitation(input.code, ctx.user.id);
-
-        return {
-          success: true,
-          firmId: invitation.firmId,
-          message: "Successfully joined the firm",
-        };
+        const result = await acceptInvitation(input.inviteCode, ctx.user.id);
+        return result;
       } catch (error: any) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -96,9 +83,9 @@ export const invitationsRouter = router({
     }),
 
   /**
-   * List pending invitations for a firm
+   * List firm invitations
    */
-  listPending: protectedProcedure.query(async ({ ctx }: any) => {
+  list: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.user.firmId) {
       throw new TRPCError({
         code: "FORBIDDEN",
@@ -107,7 +94,8 @@ export const invitationsRouter = router({
     }
 
     try {
-      return await listFirmInvitations(ctx.user.firmId);
+      const invitations = await listFirmInvitations(ctx.user.firmId);
+      return invitations;
     } catch (error: any) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -117,11 +105,11 @@ export const invitationsRouter = router({
   }),
 
   /**
-   * Revoke an invitation
+   * Revoke a firm invitation
    */
   revoke: protectedProcedure
-    .input(z.object({ invitationId: z.number() }))
-    .mutation(async ({ ctx, input }: any) => {
+    .input(z.object({ inviteCode: z.string() }))
+    .mutation(async ({ ctx, input }) => {
       if (!ctx.user.firmId) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -130,12 +118,13 @@ export const invitationsRouter = router({
       }
 
       try {
-        await revokeInvitation(input.invitationId);
-
-        return {
-          success: true,
-          message: "Invitation revoked",
-        };
+        // Get invitation by code to get the ID
+        const invitation = await getInvitationByCode(input.inviteCode);
+        if (!invitation || invitation.firmId !== ctx.user.firmId) {
+          throw new Error('Invitation not found or unauthorized');
+        }
+        await revokeInvitation(invitation.id);
+        return { success: true };
       } catch (error: any) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

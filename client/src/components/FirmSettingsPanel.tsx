@@ -15,6 +15,23 @@ import { useAuth } from '@/_core/hooks/useAuth';
  */
 export default function FirmSettingsPanel() {
   const { user } = useAuth();
+
+  // Check if user is admin
+  if (user?.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>Only firm admins can access settings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">You don't have permission to access this page. Please contact your firm administrator.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [firmName, setFirmName] = useState('');
   const [firmEmail, setFirmEmail] = useState('');

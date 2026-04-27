@@ -21,7 +21,7 @@ export default function AcceptInvitation() {
   const code = params?.code as string | undefined;
 
   // Get invitation details
-  const { data: invitation, isLoading: invitationLoading, error: invitationError } = trpc.invitations.getByCode.useQuery(
+  const { data: invitation, isLoading: invitationLoading, error: invitationError } = trpc.invitations.accept.useQuery(
     { code: code || '' },
     { enabled: !!code && !authLoading }
   );

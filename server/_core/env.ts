@@ -12,4 +12,5 @@ export const ENV = {
   smtpUser: process.env.SMTP_USER ?? "",
   smtpPassword: process.env.SMTP_PASSWORD ?? "",
   smtpFromEmail: process.env.SMTP_FROM_EMAIL ?? "noreply@legalosx.com",
+  resendApiKey: process.env.RESEND_API_KEY ?? "",
 };
