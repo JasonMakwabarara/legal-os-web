@@ -39,17 +39,8 @@ export default function Home() {
     }
   }, [isAuthenticated, loading, user?.firmId, setLocation]);
 
-  if (isAuthenticated && !loading) {
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-      </div>
-    );
-  }
+  // Show landing page for unauthenticated users
+  // Authenticated users will be redirected by useEffect hooks above
 
   const features = [
     {

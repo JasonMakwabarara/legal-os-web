@@ -14,7 +14,7 @@ import CaseManagement from "./pages/CaseManagement";
 import ClientManagement from "./pages/ClientManagement";
 import DocumentManagement from "./pages/DocumentManagement";
 import AIChatPage from "./pages/AIChatPage";
-import Home from "./pages/Home";
+import LandingPage from "./pages/LandingPage";
 import FirmSetup from "./pages/FirmSetup";
 import OnboardingWelcome from "./pages/OnboardingWelcome";
 import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
@@ -42,7 +42,7 @@ function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={LandingPage} />
       <Route path={"/firm-setup"} component={FirmSetup} />
       <Route path={"/onboarding"} component={OnboardingWelcome} />
       <Route path={"/dashboard"} component={Dashboard} />
