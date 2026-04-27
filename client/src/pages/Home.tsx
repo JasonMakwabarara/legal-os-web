@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -242,13 +242,13 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-              <Button
-                className="w-full"
-                variant={plan.highlighted ? "default" : "outline"}
-                onClick={() => window.location.href = getLoginUrl()}
-              >
-                {plan.highlighted ? 'Start Free Trial' : 'Learn More'}
-              </Button>
+                  <Button
+                    className="w-full"
+                    variant={plan.highlighted ? "default" : "outline"}
+                    onClick={() => window.location.href = getLoginUrl()}
+                  >
+                    {plan.highlighted ? 'Start Free Trial' : 'Learn More'}
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -260,9 +260,9 @@ export default function Home() {
       <section className="py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">Ready to Transform Your Law Practice?</h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join law firms using Legal OS to automate legal operations and increase profitability
-            </p>
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Join law firms using Legal OS to automate legal operations and increase profitability
+          </p>
           <Button
             size="lg"
             className="bg-accent hover:bg-accent/90 text-accent-foreground"
