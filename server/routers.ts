@@ -470,6 +470,17 @@ export const appRouter = router({
         }
         return db.getFirmById(input.id);
       }),
+
+    getMembers: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        const dbInstance = await db.getDb();
+        return (dbInstance as any).query.users.findMany({
+          where: (u: any, { eq }: any) => eq(u.firmId, ctx.user.firmId),
+        });
+      }),
   }),
 
   // Document Drafting router
