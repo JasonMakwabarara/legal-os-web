@@ -25,12 +25,19 @@ export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users with a firm to dashboard
   useEffect(() => {
-    if (isAuthenticated && !loading) {
+    if (isAuthenticated && !loading && user?.firmId) {
       setLocation("/dashboard");
     }
-  }, [isAuthenticated, loading, setLocation]);
+  }, [isAuthenticated, loading, user?.firmId, setLocation]);
+
+  // Redirect authenticated users without a firm to onboarding
+  useEffect(() => {
+    if (isAuthenticated && !loading && !user?.firmId) {
+      setLocation("/firm-setup");
+    }
+  }, [isAuthenticated, loading, user?.firmId, setLocation]);
 
   if (isAuthenticated && !loading) {
     return null;

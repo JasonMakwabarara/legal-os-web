@@ -77,7 +77,19 @@ export default function FirmSetup() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <div className="w-full max-w-md space-y-6">
+        {/* Progress indicator */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Step 1 of 3</span>
+            <span className="text-muted-foreground">Firm Setup</span>
+          </div>
+          <div className="w-full bg-secondary rounded-full h-2">
+            <div className="bg-accent h-2 rounded-full" style={{ width: '33%' }}></div>
+          </div>
+        </div>
+
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Welcome to Legal OS</CardTitle>
           <CardDescription>
@@ -180,6 +192,7 @@ export default function FirmSetup() {
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

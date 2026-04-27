@@ -43,6 +43,13 @@
       "when": 1777188935481,
       "tag": "0005_good_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1777273692933,
+      "tag": "0006_swift_thunderbolt",
+      "breakpoints": true
     }
   ]
 }

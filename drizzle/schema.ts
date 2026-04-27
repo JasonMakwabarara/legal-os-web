@@ -520,3 +520,24 @@ export const templateApprovalRules = mysqlTable("templateApprovalRules", {
 
 export type TemplateApprovalRule = typeof templateApprovalRules.$inferSelect;
 export type InsertTemplateApprovalRule = typeof templateApprovalRules.$inferInsert;
+
+
+/**
+ * Firm Invitations - manages user invitations to join firms
+ */
+export const firmInvitations = mysqlTable("firmInvitations", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  inviteCode: varchar("inviteCode", { length: 64 }).notNull().unique(),
+  email: varchar("email", { length: 320 }),
+  invitedBy: int("invitedBy").notNull(),
+  status: mysqlEnum("status", ["pending", "accepted", "expired"]).default("pending").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  acceptedAt: timestamp("acceptedAt"),
+  acceptedBy: int("acceptedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FirmInvitation = typeof firmInvitations.$inferSelect;
+export type InsertFirmInvitation = typeof firmInvitations.$inferInsert;

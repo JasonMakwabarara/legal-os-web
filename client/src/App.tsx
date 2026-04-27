@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -9,6 +8,8 @@ import { GuidedTour } from "./components/GuidedTour";
 import { useAuth } from "@/_core/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import ContractDetail from "./pages/ContractDetail";
+import NotFound from "./pages/NotFound";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import CaseManagement from "./pages/CaseManagement";
 import ClientManagement from "./pages/ClientManagement";
 import DocumentManagement from "./pages/DocumentManagement";
@@ -53,6 +54,7 @@ function Router() {
       <Route path={"/template-builder"} component={ClauseTemplateBuilder} />
       <Route path={"/approvals"} component={TemplateApprovalDashboard} />
       <Route path={"/blog"} component={BlogResources} />
+      <Route path={"/accept-invitation/:code"} component={AcceptInvitation} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

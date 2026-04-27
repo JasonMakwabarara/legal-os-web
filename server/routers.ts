@@ -9,6 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigationStrategy, predictCaseOutcome } from "./services/advancedAIService";
 import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
 import { templatesRouter } from "./routers-templates";
+import { invitationsRouter } from "./routers-invitations";
 
 export const appRouter = router({
   system: systemRouter,
@@ -761,6 +762,9 @@ export const appRouter = router({
 
   // Clause Templates with Approval Workflow
   templates: templatesRouter,
+
+  // Firm Invitations
+  invitations: invitationsRouter,
 });
 
 export type AppRouter = typeof appRouter;
