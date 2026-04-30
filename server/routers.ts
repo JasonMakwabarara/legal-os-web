@@ -183,6 +183,36 @@ export const appRouter = router({
 
   // Documents router
   documents: router({
+    upload: protectedProcedure
+      .input(
+        z.object({
+          fileName: z.string().min(1),
+          fileContent: z.string(),
+          fileMimeType: z.string(),
+          fileSize: z.number(),
+          tempId: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }: any) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        try {
+          if (input.fileSize > 50 * 1024 * 1024) {
+            throw new Error('File size exceeds 50MB limit');
+          }
+          const buffer = Buffer.from(input.fileContent.split(',')[1] || input.fileContent, 'base64');
+          const storageKey = `documents/${ctx.user.firmId}/${Date.now()}-${input.fileName}`;
+          const { url, key } = await storagePut(storageKey, buffer, input.fileMimeType);
+          return {
+            tempId: input.tempId,
+            fileName: input.fileName,
+            fileUrl: url,
+          };
+        } catch (error) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Upload failed: ${(error as Error).message}` });
+        }
+      }),
     list: protectedProcedure
       .query(async ({ ctx }) => {
         if (!ctx.user.firmId) {
