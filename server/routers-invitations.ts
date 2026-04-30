@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from "./_core/trpc";
+import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
@@ -30,6 +30,13 @@ export const invitationsRouter = router({
         });
       }
 
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can create invitations",
+        });
+      }
+
       try {
         const invitation = await createFirmInvitation(
           ctx.user.firmId,
@@ -40,52 +47,72 @@ export const invitationsRouter = router({
 
         const inviteUrl = `${process.env.VITE_APP_URL || "http://localhost:5173"}/accept-invitation/${invitation.inviteCode}`;
 
-        // Send invitation email
-        const emailResult = await sendInvitationEmail({
-          recipientEmail: input.email || "",
-          recipientName: input.recipientName || "Team Member",
-          firmName: ctx.user.firmId?.toString() || "Our Firm",
-          invitationLink: inviteUrl,
-          inviterName: ctx.user.name || "Your colleague",
-        });
-
-        if (!emailResult.success) {
-          console.warn("Failed to send invitation email:", emailResult.error);
+        // Send invitation email if email provided
+        if (input.email) {
+          await sendInvitationEmail({
+            recipientEmail: input.email,
+            recipientName: input.recipientName || "Team Member",
+            firmName: ctx.user.name || "Our Firm",
+            invitationLink: inviteUrl,
+            inviterName: ctx.user.name || "Your colleague",
+          });
         }
 
         return {
-          ...invitation,
+          success: true,
+          inviteCode: invitation.inviteCode,
           inviteUrl,
+          expiresAt: invitation.expiresAt,
         };
-      } catch (error: any) {
+      } catch (error) {
+        console.error("Error creating invitation:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message || "Failed to create invitation",
+          message: "Failed to create invitation",
         });
       }
     }),
 
   /**
-   * Accept a firm invitation
+   * Accept an invitation
    */
   accept: protectedProcedure
     .input(z.object({ inviteCode: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
         const result = await acceptInvitation(input.inviteCode, ctx.user.id);
-        return result;
-      } catch (error: any) {
+        return {
+          success: true,
+          firmId: result.firmId,
+        };
+      } catch (error) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: error.message || "Failed to accept invitation",
+          message: error instanceof Error ? error.message : "Failed to accept invitation",
         });
       }
     }),
 
   /**
-   * List firm invitations
+   * Get invitation details by code
    */
-  list: protectedProcedure.query(async ({ ctx }) => {
+  getByCode: publicProcedure
+    .input(z.object({ inviteCode: z.string() }))
+    .query(async ({ input }) => {
+      const invitation = await getInvitationByCode(input.inviteCode);
+      if (!invitation) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Invitation not found",
+        });
+      }
+      return invitation;
+    }),
+
+  /**
+   * List pending invitations for a firm
+   */
+  listPending: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.user.firmId) {
       throw new TRPCError({
         code: "FORBIDDEN",
@@ -93,22 +120,21 @@ export const invitationsRouter = router({
       });
     }
 
-    try {
-      const invitations = await listFirmInvitations(ctx.user.firmId);
-      return invitations;
-    } catch (error: any) {
+    if (ctx.user.role !== "admin") {
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: error.message || "Failed to list invitations",
+        code: "FORBIDDEN",
+        message: "Only admins can view invitations",
       });
     }
+
+    return listFirmInvitations(ctx.user.firmId);
   }),
 
   /**
-   * Revoke a firm invitation
+   * Revoke an invitation
    */
   revoke: protectedProcedure
-    .input(z.object({ inviteCode: z.string() }))
+    .input(z.object({ invitationId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user.firmId) {
         throw new TRPCError({
@@ -117,18 +143,20 @@ export const invitationsRouter = router({
         });
       }
 
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only admins can revoke invitations",
+        });
+      }
+
       try {
-        // Get invitation by code to get the ID
-        const invitation = await getInvitationByCode(input.inviteCode);
-        if (!invitation || invitation.firmId !== ctx.user.firmId) {
-          throw new Error('Invitation not found or unauthorized');
-        }
-        await revokeInvitation(invitation.id);
+        await revokeInvitation(input.invitationId);
         return { success: true };
-      } catch (error: any) {
+      } catch (error) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error.message || "Failed to revoke invitation",
+          message: "Failed to revoke invitation",
         });
       }
     }),

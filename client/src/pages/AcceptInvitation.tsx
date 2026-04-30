@@ -21,8 +21,8 @@ export default function AcceptInvitation() {
   const code = params?.code as string | undefined;
 
   // Get invitation details
-  const { data: invitation, isLoading: invitationLoading, error: invitationError } = trpc.invitations.accept.useQuery(
-    { code: code || '' },
+  const { data: invitation, isLoading: invitationLoading, error: invitationError } = trpc.invitations.getByCode.useQuery(
+    { inviteCode: code || '' },
     { enabled: !!code && !authLoading }
   );
 
@@ -64,7 +64,7 @@ export default function AcceptInvitation() {
       invitation.status === 'pending' &&
       !acceptMutation.isPending
     ) {
-      acceptMutation.mutate({ code: code || '' });
+      acceptMutation.mutate({ inviteCode: code || '' });
     }
   }, [authLoading, isAuthenticated, user?.firmId, invitation, code, acceptMutation]);
 
@@ -148,7 +148,7 @@ export default function AcceptInvitation() {
                 </Button>
                 <Button
                   className="flex-1 bg-accent hover:bg-accent/90"
-                  onClick={() => acceptMutation.mutate({ code: code || '' })}
+                  onClick={() => acceptMutation.mutate({ inviteCode: code || '' })}
                   disabled={acceptMutation.isPending}
                 >
                   {acceptMutation.isPending ? (

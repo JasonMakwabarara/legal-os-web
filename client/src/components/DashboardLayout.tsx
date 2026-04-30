@@ -30,8 +30,8 @@ import { HelpMenu } from "./HelpMenu";
 import { GlobalSearch } from "./GlobalSearch";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Users, label: "Team", path: "/team" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -49,6 +49,7 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -88,7 +89,7 @@ export default function DashboardLayout({
     <SidebarProvider
       style={
         {
-          "--sidebar-width": `${sidebarWidth}px`,
+          "--sidebar-width": isMobile ? "0px" : `${sidebarWidth}px`,
         } as CSSProperties
       }
     >
@@ -234,14 +235,16 @@ function DashboardLayoutContent({
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
-        <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
-          onMouseDown={() => {
-            if (isCollapsed) return;
-            setIsResizing(true);
-          }}
-          style={{ zIndex: 50 }}
-        />
+        {!isMobile && (
+          <div
+            className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
+            onMouseDown={() => {
+              if (isCollapsed) return;
+              setIsResizing(true);
+            }}
+            style={{ zIndex: 50 }}
+          />
+        )}
       </div>
 
       <SidebarInset>
@@ -274,7 +277,7 @@ function DashboardLayoutContent({
         )}
           </div>
         )}
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-auto">{children}</main>
       </SidebarInset>
     </>
   );

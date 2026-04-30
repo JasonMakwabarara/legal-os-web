@@ -42,7 +42,7 @@ export default function TeamMemberManagement() {
   const { data: members = [], isLoading: membersLoading, refetch: refetchMembers } = trpc.firms.getMembers.useQuery(
     undefined,
     { enabled: !!user?.firmId }
-  );
+  ) as any;
 
   // Get pending invitations
   const { data: invitations = [], isLoading: invitationsLoading } = trpc.invitations.listPending.useQuery(
@@ -95,7 +95,7 @@ export default function TeamMemberManagement() {
     });
   };
 
-  const handleRevokeInvitation = async (inviteCode: number) => {
+  const handleRevokeInvitation = async (invitationId: number) => {
     await revokeInviteMutation.mutateAsync({ invitationId });
   };
 
