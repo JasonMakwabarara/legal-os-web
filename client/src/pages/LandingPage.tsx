@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getLoginUrl } from '@/const';
+import InteractiveDemo from '@/components/InteractiveDemo';
 import {
   Brain,
   FileText,
@@ -336,6 +337,31 @@ export default function LandingPage() {
               );
             })}
           </div>
+        </motion.div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="py-32 px-4 sm:px-6 lg:px-8 relative">
+        <motion.div
+          className="max-w-6xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <motion.div variants={itemVariants} className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-white mb-4">
+              Experience Legal OS in Action
+            </h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Watch how Legal OS transforms your legal workflow with intelligent contract analysis,
+              real-time collaboration, and AI-powered insights
+            </p>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <InteractiveDemo />
+          </motion.div>
         </motion.div>
       </section>
 
