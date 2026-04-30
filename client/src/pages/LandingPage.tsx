@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getLoginUrl } from '@/const';
@@ -11,47 +12,88 @@ import {
   TrendingUp,
   CheckCircle2,
   ArrowRight,
+  Sparkles,
+  Lock,
+  Gauge,
 } from 'lucide-react';
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8 },
+  },
+};
+
+const floatingVariants = {
+  animate: {
+    y: [0, -10, 0],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+    },
+  },
+};
+
 export default function LandingPage() {
+  const [pricingBillingCycle, setPricingBillingCycle] = useState('monthly');
+
   const features = [
     {
       icon: Brain,
       title: 'AI-Powered Analysis',
       description: 'Intelligent contract analysis, risk assessment, and legal research powered by advanced LLMs',
+      color: 'from-blue-500 to-cyan-500',
     },
     {
       icon: FileText,
       title: 'Document Management',
       description: 'Centralized repository for contracts, briefs, and legal documents with version control',
+      color: 'from-purple-500 to-pink-500',
     },
     {
       icon: Users,
       title: 'Real-Time Collaboration',
       description: 'Work together seamlessly with WebSocket-powered live editing and presence awareness',
+      color: 'from-green-500 to-emerald-500',
     },
     {
       icon: Zap,
       title: 'Automation',
       description: 'Automate document generation, filing, and workflow processes to save time',
+      color: 'from-yellow-500 to-orange-500',
     },
     {
       icon: Shield,
       title: 'Security & Compliance',
       description: 'Enterprise-grade security with audit logging and firm-based data isolation',
+      color: 'from-red-500 to-rose-500',
     },
     {
       icon: TrendingUp,
       title: 'Analytics & Insights',
       description: 'Predictive analytics for case outcomes and litigation strategy recommendations',
+      color: 'from-indigo-500 to-blue-500',
     },
   ];
 
   const pricingPlans = [
     {
       name: 'Starter',
-      price: '$99',
-      period: '/month',
+      price: pricingBillingCycle === 'monthly' ? '99' : '990',
+      period: pricingBillingCycle === 'monthly' ? '/month' : '/year',
       description: 'Perfect for solo practitioners',
       features: [
         'Up to 50 contracts',
@@ -62,8 +104,8 @@ export default function LandingPage() {
     },
     {
       name: 'Professional',
-      price: '$299',
-      period: '/month',
+      price: pricingBillingCycle === 'monthly' ? '299' : '2990',
+      period: pricingBillingCycle === 'monthly' ? '/month' : '/year',
       description: 'For growing law firms',
       features: [
         'Unlimited contracts',
@@ -89,227 +131,498 @@ export default function LandingPage() {
     },
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-slate-950/80 backdrop-blur-md border-b border-slate-800 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-teal-400 rounded-lg flex items-center justify-center">
-              <FileText className="w-5 h-5 text-slate-950 font-bold" />
-            </div>
-            <span className="text-xl font-bold text-white">Legal OS</span>
-          </div>
-          <Button
-            onClick={() => (window.location.href = getLoginUrl())}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            Sign In
-          </Button>
-        </div>
-      </nav>
+  const testimonials = [
+    {
+      name: 'Sarah Chen',
+      role: 'Managing Partner, Chen & Associates',
+      content: 'Legal OS transformed how we manage contracts. We\'ve reduced review time by 60%.',
+      avatar: '👩‍⚖️',
+    },
+    {
+      name: 'Michael Rodriguez',
+      role: 'Senior Counsel, Fortune 500 Tech',
+      content: 'The AI-powered analysis is incredibly accurate. It\'s like having an extra legal team.',
+      avatar: '👨‍💼',
+    },
+    {
+      name: 'Emily Watson',
+      role: 'Founder, Watson Legal Group',
+      content: 'Best investment we made. The ROI was immediate and the support team is fantastic.',
+      avatar: '👩‍💻',
+    },
+  ];
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            AI-Powered Legal Practice Management
-          </h1>
-          <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-            Streamline your legal workflow with intelligent contract analysis, real-time collaboration, and predictive analytics. Built for modern law firms.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-blue-950 to-slate-950 overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl"
+        animate={{ y: [0, 50, 0], x: [0, 30, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"
+        animate={{ y: [0, -50, 0], x: [0, -30, 0] }}
+        transition={{ duration: 10, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"
+        animate={{ y: [0, 30, 0], x: [0, -20, 0] }}
+        transition={{ duration: 12, repeat: Infinity }}
+        />
+      </div>
+
+      {/* Navigation */}
+      <motion.nav
+        className="fixed top-0 w-full bg-slate-950/40 backdrop-blur-xl border-b border-slate-800/50 z-50"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.05 }}>
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 via-cyan-400 to-teal-400 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50">
+              <FileText className="w-6 h-6 text-slate-950 font-bold" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              Legal OS
+            </span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onClick={() => (window.location.href = getLoginUrl())}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 text-lg gap-2"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold shadow-lg shadow-blue-500/50"
             >
-              Get Started <ArrowRight className="w-5 h-5" />
+              Sign In
             </Button>
-            <Button
-              variant="outline"
-              className="border-slate-600 text-slate-200 hover:bg-slate-800 px-8 py-6 text-lg"
-            >
-              Watch Demo
-            </Button>
-          </div>
+          </motion.div>
+        </div>
+      </motion.nav>
+
+      {/* Hero Section */}
+      <section className="relative pt-40 pb-32 px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="max-w-5xl mx-auto text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants} className="mb-6">
+            <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/50 rounded-full text-blue-300 text-sm font-semibold backdrop-blur">
+              ✨ Powered by Advanced AI
+            </span>
+          </motion.div>
+
+          <motion.h1
+            variants={itemVariants}
+            className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight"
+          >
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
+              AI-Powered Legal Practice
+            </span>
+            <br />
+            <span className="text-slate-100">Management Platform</span>
+          </motion.h1>
+
+          <motion.p
+            variants={itemVariants}
+            className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed"
+          >
+            Streamline your legal workflow with intelligent contract analysis, real-time collaboration, and predictive analytics. Built for modern law firms that demand excellence.
+          </motion.p>
+
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                onClick={() => (window.location.href = getLoginUrl())}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-8 py-7 text-lg font-semibold gap-2 shadow-xl shadow-blue-500/50"
+              >
+                Get Started Free <ArrowRight className="w-5 h-5" />
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                className="border-slate-600 text-slate-200 hover:bg-slate-800/50 px-8 py-7 text-lg font-semibold backdrop-blur"
+              >
+                Watch Demo
+              </Button>
+            </motion.div>
+          </motion.div>
 
           {/* Trust Badges */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-slate-400 text-sm">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-wrap justify-center gap-8 text-slate-400 text-sm"
+          >
+            <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.1 }}>
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               <span>Enterprise Security</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
+            </motion.div>
+            <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.1 }}>
+              <Lock className="w-5 h-5 text-emerald-400" />
               <span>SOC 2 Compliant</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-400" />
+            </motion.div>
+            <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.1 }}>
+              <Gauge className="w-5 h-5 text-emerald-400" />
               <span>99.9% Uptime SLA</span>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+
+        {/* Floating Card Preview */}
+        <motion.div
+          className="mt-20 max-w-4xl mx-auto"
+          variants={floatingVariants}
+          animate="animate"
+        >
+          <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
+            <div className="grid grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  className="h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30"
+                  whileHover={{ scale: 1.05 }}
+                />
+              ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-white mb-4 text-center">
-            Powerful Features for Modern Law Firms
-          </h2>
-          <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
-            Everything you need to manage your legal practice efficiently
-          </p>
+      <section className="py-32 px-4 sm:px-6 lg:px-8 relative">
+        <motion.div
+          className="max-w-6xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <motion.div variants={itemVariants} className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-white mb-4">
+              Powerful Features for Modern Law Firms
+            </h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Everything you need to manage your legal practice efficiently and securely
+            </p>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
-                <Card
+                <motion.div
                   key={idx}
-                  className="bg-slate-800/50 border-slate-700 hover:border-blue-500/50 transition-colors p-6"
+                  variants={itemVariants}
+                  whileHover={{ y: -8 }}
+                  className="group"
                 >
-                  <Icon className="w-12 h-12 text-blue-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-slate-400">{feature.description}</p>
-                </Card>
+                  <Card className="bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl p-8 h-full transition-all duration-300">
+                    <motion.div
+                      className={`w-14 h-14 rounded-lg bg-gradient-to-br ${feature.color} p-3 mb-6 shadow-lg`}
+                         whileHover={{ rotate: 10, scale: 1.1 }}
+                    >
+                      <Icon className="w-full h-full text-white" />
+                    </motion.div>
+                    <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                    <p className="text-slate-400 leading-relaxed">{feature.description}</p>
+                  </Card>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-900/50 to-blue-900/30 relative">
+        <motion.div
+          className="max-w-6xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <motion.h2
+            variants={itemVariants}
+            className="text-4xl font-bold text-white mb-16 text-center"
+          >
+            Trusted by Leading Law Firms
+          </motion.h2>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, idx) => (
+              <motion.div
+                key={idx}
+                variants={itemVariants}
+                whileHover={{ y: -8 }}
+                className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-8 backdrop-blur-xl"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-4xl">{testimonial.avatar}</span>
+                  <div>
+                    <p className="font-semibold text-white">{testimonial.name}</p>
+                    <p className="text-sm text-slate-400">{testimonial.role}</p>
+                  </div>
+                </div>
+                <p className="text-slate-300 leading-relaxed">"{testimonial.content}"</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-white mb-4 text-center">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
-            Choose the plan that fits your firm's needs
-          </p>
+      <section className="py-32 px-4 sm:px-6 lg:px-8 relative">
+        <motion.div
+          className="max-w-6xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <motion.div variants={itemVariants} className="text-center mb-12">
+            <h2 className="text-5xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-slate-400 text-lg mb-8">Choose the plan that fits your firm's needs</p>
+
+            {/* Billing Toggle */}
+            <div className="flex justify-center gap-4 mb-12">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPricingBillingCycle('monthly')}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                  pricingBillingCycle === 'monthly'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50'
+                    : 'bg-slate-800/50 text-slate-400 hover:text-white'
+                }`}
+              >
+                Monthly
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setPricingBillingCycle('yearly')}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                  pricingBillingCycle === 'yearly'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50'
+                    : 'bg-slate-800/50 text-slate-400 hover:text-white'
+                }`}
+              >
+                Yearly <span className="text-xs ml-1">(Save 20%)</span>
+              </motion.button>
+            </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {pricingPlans.map((plan, idx) => (
-              <Card
+              <motion.div
                 key={idx}
-                className={`p-8 transition-all ${
-                  plan.highlighted
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500 shadow-xl scale-105'
-                    : 'bg-slate-800/50 border-slate-700'
-                }`}
+                variants={itemVariants}
+                whileHover={{ y: -12 }}
+                className="group"
               >
-                <h3 className={`text-2xl font-bold mb-2 ${plan.highlighted ? 'text-white' : 'text-white'}`}>
-                  {plan.name}
-                </h3>
-                <p className={`mb-4 ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
-                  {plan.description}
-                </p>
-
-                <div className="mb-6">
-                  <span className={`text-4xl font-bold ${plan.highlighted ? 'text-white' : 'text-white'}`}>
-                    {plan.price}
-                  </span>
-                  <span className={plan.highlighted ? 'text-blue-100' : 'text-slate-400'}>
-                    {' '}{plan.period}
-                  </span>
-                </div>
-
-                <Button
-                  onClick={() => (window.location.href = getLoginUrl())}
-                  className={`w-full mb-6 ${
+                <Card
+                  className={`p-8 transition-all duration-300 relative overflow-hidden h-full ${
                     plan.highlighted
-                      ? 'bg-white text-blue-600 hover:bg-slate-100'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border-blue-500/50 shadow-2xl shadow-blue-500/30 scale-105'
+                      : 'bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl'
                   }`}
                 >
-                  Get Started
-                </Button>
+                  {plan.highlighted && (
+                    <motion.div
+                      className="absolute top-0 right-0 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold rounded-bl-lg"
+                      animate={{ y: [0, 5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      POPULAR
+                    </motion.div>
+                  )}
 
-                <ul className="space-y-3">
-                  {plan.features.map((feature, fidx) => (
-                    <li
-                      key={fidx}
-                      className={`flex items-center gap-2 ${
-                        plan.highlighted ? 'text-white' : 'text-slate-300'
+                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                  <p className={`mb-6 ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
+                    {plan.description}
+                  </p>
+
+                  <div className="mb-8">
+                    <span className="text-5xl font-bold text-white">${plan.price}</span>
+                    <span className={plan.highlighted ? 'text-blue-100' : 'text-slate-400'}>
+                      {' '}{plan.period}
+                    </span>
+                  </div>
+
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mb-8">
+                    <Button
+                      onClick={() => (window.location.href = getLoginUrl())}
+                      className={`w-full font-semibold ${
+                        plan.highlighted
+                          ? 'bg-white text-blue-600 hover:bg-slate-100 shadow-lg'
+                          : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white'
                       }`}
                     >
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+                      Get Started
+                    </Button>
+                  </motion.div>
+
+                  <ul className="space-y-4">
+                    {plan.features.map((feature, fidx) => (
+                      <motion.li
+                        key={fidx}
+                        className={`flex items-center gap-3 ${
+                          plan.highlighted ? 'text-white' : 'text-slate-300'
+                        }`}
+                        whileHover={{ x: 5 }}
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </Card>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-teal-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Legal Practice?
-          </h2>
-          <p className="text-blue-100 mb-8 text-lg">
-            Join hundreds of law firms using Legal OS to work smarter
-          </p>
-          <Button
-            onClick={() => (window.location.href = getLoginUrl())}
-            className="bg-white text-blue-600 hover:bg-slate-100 px-8 py-6 text-lg font-semibold"
+      <section className="py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 blur-3xl" />
+        <motion.div
+          className="max-w-4xl mx-auto text-center relative z-10"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <motion.h2
+            variants={itemVariants}
+            className="text-5xl font-bold text-white mb-6"
           >
-            Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </div>
+            Ready to Transform Your Legal Practice?
+          </motion.h2>
+          <motion.p
+            variants={itemVariants}
+            className="text-blue-100 mb-10 text-xl leading-relaxed"
+          >
+            Join hundreds of law firms using Legal OS to work smarter, faster, and with greater confidence. Start your free trial today—no credit card required.
+          </motion.p>
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              onClick={() => (window.location.href = getLoginUrl())}
+              className="bg-white text-blue-600 hover:bg-slate-100 px-10 py-7 text-lg font-bold shadow-xl shadow-white/20"
+            >
+              Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="border-t border-slate-800/50 bg-slate-950/50 backdrop-blur-xl py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-slate-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">Features</a></li>
-                <li><a href="#" className="hover:text-white transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition">Security</a></li>
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
+              <h4 className="text-white font-bold mb-6 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-400" />
+                Product
+              </h4>
+              <ul className="space-y-3 text-slate-400 text-sm">
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Security
+                  </a>
+                </li>
               </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-slate-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">About</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
+              <h4 className="text-white font-bold mb-6">Company</h4>
+              <ul className="space-y-3 text-slate-400 text-sm">
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Contact
+                  </a>
+                </li>
               </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-slate-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition">Compliance</a></li>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
+              <h4 className="text-white font-bold mb-6">Legal</h4>
+              <ul className="space-y-3 text-slate-400 text-sm">
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Privacy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Terms
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Compliance
+                  </a>
+                </li>
               </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-slate-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition">API Docs</a></li>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
+              <h4 className="text-white font-bold mb-6">Support</h4>
+              <ul className="space-y-3 text-slate-400 text-sm">
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-blue-400 transition">
+                    API Docs
+                  </a>
+                </li>
               </ul>
-            </div>
+            </motion.div>
           </div>
 
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-teal-400 rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-slate-950" />
+          <div className="border-t border-slate-800/50 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <motion.div className="flex items-center gap-3 mb-4 md:mb-0" whileHover={{ scale: 1.05 }}>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg">
+                <FileText className="w-5 h-5 text-slate-950 font-bold" />
               </div>
-              <span className="text-white font-semibold">Legal OS</span>
-            </div>
+              <span className="text-white font-bold">Legal OS</span>
+            </motion.div>
             <p className="text-slate-400 text-sm">
               © 2026 Legal OS. All rights reserved. Powered by SpiderNetOS.
             </p>

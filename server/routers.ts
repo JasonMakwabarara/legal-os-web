@@ -10,6 +10,7 @@ import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigation
 import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
 import { templatesRouter } from "./routers-templates";
 import { invitationsRouter } from "./routers-invitations";
+import { searchRouter } from "./routers-search";
 
 export const appRouter = router({
   system: systemRouter,
@@ -806,6 +807,9 @@ export const appRouter = router({
 
   // Firm Invitations
   invitations: invitationsRouter,
+
+  // Advanced Search & OCR
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;
