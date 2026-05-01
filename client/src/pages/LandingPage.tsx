@@ -17,6 +17,7 @@ import {
   Sparkles,
   Lock,
   Gauge,
+  AlertTriangle,
 } from 'lucide-react';
 
 const containerVariants = {
@@ -291,19 +292,22 @@ export default function LandingPage() {
           <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
             <div className="grid grid-cols-3 gap-4">
               {[
-                { title: 'Smart Analysis', icon: '🔍' },
-                { title: 'Risk Detection', icon: '⚠️' },
-                { title: 'Recommendations', icon: '💡' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  className="h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/60 transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <span className="text-2xl mb-1">{item.icon}</span>
-                  <span className="text-xs text-slate-300 font-medium text-center px-2">{item.title}</span>
-                </motion.div>
-              ))}
+                { title: 'Smart Analysis', Icon: Brain },
+                { title: 'Risk Detection', Icon: AlertTriangle },
+                { title: 'Recommendations', Icon: Sparkles },
+              ].map((item, i) => {
+                const Icon = item.Icon;
+                return (
+                  <motion.div
+                    key={i}
+                    className="h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/60 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Icon className="w-6 h-6 text-blue-400 mb-2" />
+                    <span className="text-xs text-slate-300 font-medium text-center px-2">{item.title}</span>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </motion.div>
