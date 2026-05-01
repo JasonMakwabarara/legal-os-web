@@ -554,3 +554,8 @@
 - [x] Create recommendation engine UI
 - [x] Add difference highlighting
 - [x] Implement export and share functionality
+
+
+## Bug Fixes - Landing Page
+- [x] Fix "Watch Demo" button - should open/scroll to InteractiveDemo component
+- [x] Fix three blank rectangles below demo button - implement feature cards or remove placeholders

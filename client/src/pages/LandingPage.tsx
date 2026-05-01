@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getLoginUrl } from '@/const';
@@ -49,7 +50,12 @@ const floatingVariants = {
 };
 
 export default function LandingPage() {
+  const demoRef = useRef<HTMLDivElement>(null);
   const [pricingBillingCycle, setPricingBillingCycle] = useState('monthly');
+
+  const scrollToDemo = () => {
+    demoRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const features = [
     {
@@ -247,6 +253,7 @@ export default function LandingPage() {
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
+                onClick={scrollToDemo}
                 variant="outline"
                 className="border-slate-600 text-slate-200 hover:bg-slate-800/50 px-8 py-7 text-lg font-semibold backdrop-blur"
               >
@@ -283,12 +290,19 @@ export default function LandingPage() {
         >
           <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
             <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
+              {[
+                { title: 'Smart Analysis', icon: '🔍' },
+                { title: 'Risk Detection', icon: '⚠️' },
+                { title: 'Recommendations', icon: '💡' },
+              ].map((item, i) => (
                 <motion.div
                   key={i}
-                  className="h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30"
+                  className="h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/60 transition-colors"
                   whileHover={{ scale: 1.05 }}
-                />
+                >
+                  <span className="text-2xl mb-1">{item.icon}</span>
+                  <span className="text-xs text-slate-300 font-medium text-center px-2">{item.title}</span>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -341,7 +355,7 @@ export default function LandingPage() {
       </section>
 
       {/* Interactive Demo Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 relative">
+      <section ref={demoRef} className="py-32 px-4 sm:px-6 lg:px-8 relative">
         <motion.div
           className="max-w-6xl mx-auto"
           variants={containerVariants}
