@@ -21,6 +21,9 @@ import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
 import { TemplateApprovalDashboard } from "./components/TemplateApprovalDashboard";
 import { OnboardingTour, useOnboarding } from "./components/OnboardingTour";
 import BlogResources from "./pages/BlogResources";
+import AdvancedSearchPage from "./pages/AdvancedSearchPage";
+import OCRProcessingPage from "./pages/OCRProcessingPage";
+import ClauseComparisonPage from "./pages/ClauseComparisonPage";
 
 /**
  * Legal OS Application Router
@@ -46,7 +49,10 @@ function Router() {
       <Route path={"/firm-setup"} component={FirmSetup} />
       <Route path={"/onboarding"} component={OnboardingWelcome} />
       <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/contract/:id"} component={ContractDetail} />
+         <Route path={"/contract/:id"} component={ContractDetail} />
+      <Route path={"/search"} component={AdvancedSearchPage} />
+      <Route path={"/ocr"} component={OCRProcessingPage} />
+      <Route path={"/comparison"} component={ClauseComparisonPage} />
       <Route path={"/cases"} component={CaseManagement} />
       <Route path={"/clients"} component={ClientManagement} />
       <Route path={"/documents"} component={DocumentManagement} />

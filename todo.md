@@ -566,10 +566,10 @@
 - [x] Optimize demo card layout for mobile and desktop
 - [x] Reorganize demo controls (play/reset buttons)
 - [x] Add create account authentication flow
-- [ ] Integrate AdvancedSearch component into dashboard
-- [ ] Integrate OCRProcessing component into dashboard
-- [ ] Integrate ClauseComparison component into dashboard
-- [ ] Add navigation links to premium features
+- [x] Integrate AdvancedSearch component into dashboard
+- [x] Integrate OCRProcessing component into dashboard
+- [x] Integrate ClauseComparison component into dashboard
+- [x] Add navigation links to premium features
 - [ ] Connect AdvancedSearch to backend tRPC procedures
 - [ ] Connect OCRProcessing to backend OCR jobs
 - [ ] Connect ClauseComparison to backend clause data
