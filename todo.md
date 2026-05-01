@@ -570,9 +570,9 @@
 - [x] Integrate OCRProcessing component into dashboard
 - [x] Integrate ClauseComparison component into dashboard
 - [x] Add navigation links to premium features
-- [ ] Connect AdvancedSearch to backend tRPC procedures
-- [ ] Connect OCRProcessing to backend OCR jobs
-- [ ] Connect ClauseComparison to backend clause data
-- [ ] Create document upload page
-- [ ] Implement OCR pipeline integration
-- [ ] Add clause extraction to upload flow
+- [x] Connect AdvancedSearch to backend tRPC procedures
+- [x] Connect OCRProcessing to backend OCR jobs
+- [x] Connect ClauseComparison to backend clause data
+- [x] Create document upload page
+- [x] Implement OCR pipeline integration
+- [x] Add clause extraction to upload flow

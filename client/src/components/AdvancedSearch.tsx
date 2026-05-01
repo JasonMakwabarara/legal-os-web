@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { trpc } from '@/lib/trpc';
+import { useEffect } from 'react';
 import {
   Search,
   Filter,
