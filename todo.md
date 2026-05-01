@@ -559,3 +559,20 @@
 ## Bug Fixes - Landing Page
 - [x] Fix "Watch Demo" button - should open/scroll to InteractiveDemo component
 - [x] Fix three blank rectangles below demo button - implement feature cards or remove placeholders
+
+
+## Phase 29: Dashboard Integration & Backend Connection
+- [x] Create professional logo for Legal OS
+- [x] Optimize demo card layout for mobile and desktop
+- [x] Reorganize demo controls (play/reset buttons)
+- [x] Add create account authentication flow
+- [ ] Integrate AdvancedSearch component into dashboard
+- [ ] Integrate OCRProcessing component into dashboard
+- [ ] Integrate ClauseComparison component into dashboard
+- [ ] Add navigation links to premium features
+- [ ] Connect AdvancedSearch to backend tRPC procedures
+- [ ] Connect OCRProcessing to backend OCR jobs
+- [ ] Connect ClauseComparison to backend clause data
+- [ ] Create document upload page
+- [ ] Implement OCR pipeline integration
+- [ ] Add clause extraction to upload flow

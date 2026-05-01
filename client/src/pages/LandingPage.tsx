@@ -189,15 +189,20 @@ export default function LandingPage() {
         transition={{ duration: 0.6 }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.05 }}>
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 via-cyan-400 to-teal-400 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50">
-              <FileText className="w-6 h-6 text-slate-950 font-bold" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
+            <img src="/manus-storage/logo_2d94c86e.png" alt="Legal OS" className="w-10 h-10" />
+            <span className="text-xl font-bold text-white">
               Legal OS
             </span>
           </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.02 }}>
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = getLoginUrl() + '&signup=true')}
+              className="border-slate-600 text-slate-200 hover:bg-slate-800/50 font-semibold"
+            >
+              Create Account
+            </Button>
             <Button
               onClick={() => (window.location.href = getLoginUrl())}
               className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold shadow-lg shadow-blue-500/50"
