@@ -50,26 +50,10 @@ export function EnhancedAIChat({
   const [showSuggestions, setShowSuggestions] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch messages when conversation changes
-  const { data: fetchedMessages } = trpc.aiChat.getMessages.useQuery(
-    { conversationId: conversationId || '' },
-    { enabled: !!conversationId }
-  );
-
+  // Initialize with empty messages
   useEffect(() => {
-    if (fetchedMessages) {
-      setMessages(
-        fetchedMessages.map((msg: any) => ({
-          id: msg.id.toString(),
-          role: msg.role,
-          content: msg.content,
-          timestamp: new Date(msg.createdAt),
-          context: msg.context,
-          suggestedFollowUps: msg.suggestedFollowUps,
-        }))
-      );
-    }
-  }, [fetchedMessages]);
+    setMessages([]);
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -78,21 +62,8 @@ export function EnhancedAIChat({
     }
   }, [messages]);
 
-  const startConversationMutation = trpc.aiChat.startConversation.useMutation();
-
   const handleStartConversation = async () => {
-    try {
-      setIsLoading(true);
-      const newConversation = await startConversationMutation.mutateAsync({
-        title: 'Legal Query',
-      });
-      setConversationId((newConversation as any).id);
-      setMessages([]);
-    } catch (error) {
-      console.error('Failed to start conversation:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    setMessages([]);
   };
 
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();

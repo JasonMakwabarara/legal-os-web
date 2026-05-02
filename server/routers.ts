@@ -6,6 +6,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
+import { invokeLLM } from "./_core/llm";
 import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigationStrategy, predictCaseOutcome } from "./services/advancedAIService";
 import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
 import { templatesRouter } from "./routers-templates";
@@ -456,6 +457,137 @@ export const appRouter = router({
           model: 'qwen-3.5',
         });
         return { success: true, response: assistantResponse };
+      }),
+
+    analyzeClause: protectedProcedure
+      .input(z.object({
+        clauseText: z.string().min(1),
+        clauseType: z.string().optional(),
+        jurisdiction: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert legal analyst. Analyze the provided clause and provide plain English explanation, key obligations, potential risks, and recommended modifications.',
+            },
+            {
+              role: 'user',
+              content: `Analyze this ${input.clauseType || 'contract'} clause:\n\n${input.clauseText}`,
+            },
+          ],
+        });
+        return {
+          success: true,
+          analysis: response.choices?.[0]?.message?.content || '',
+          clauseType: input.clauseType,
+        };
+      }),
+
+    askAboutContract: protectedProcedure
+      .input(z.object({
+        contractText: z.string().min(1),
+        question: z.string().min(1),
+        contractType: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert legal advisor. Answer questions about the provided contract accurately and concisely.',
+            },
+            {
+              role: 'user',
+              content: `Contract:\n${input.contractText}\n\nQuestion: ${input.question}`,
+            },
+          ],
+        });
+        return {
+          success: true,
+          answer: response.choices?.[0]?.message?.content || '',
+          question: input.question,
+        };
+      }),
+
+    summarizeContract: protectedProcedure
+      .input(z.object({
+        contractText: z.string().min(1),
+        contractType: z.string().optional(),
+        detailLevel: z.enum(['brief', 'standard', 'detailed']).default('standard'),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert legal document analyst. Summarize the provided contract with clear sections and bullet points.',
+            },
+            {
+              role: 'user',
+              content: `Summarize this ${input.contractType || 'contract'} (${input.detailLevel} detail):\n\n${input.contractText}`,
+            },
+          ],
+        });
+        return {
+          success: true,
+          summary: response.choices?.[0]?.message?.content || '',
+          contractType: input.contractType,
+          detailLevel: input.detailLevel,
+        };
+      }),
+
+    identifyRisks: protectedProcedure
+      .input(z.object({
+        contractText: z.string().min(1),
+        contractType: z.string().optional(),
+        jurisdiction: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert risk management attorney. Identify potential risks in the contract and provide severity levels and mitigation strategies.',
+            },
+            {
+              role: 'user',
+              content: `Identify risks in this ${input.contractType || 'contract'}:\n\n${input.contractText}`,
+            },
+          ],
+        });
+        return {
+          success: true,
+          risks: response.choices?.[0]?.message?.content || '',
+          contractType: input.contractType,
+        };
+      }),
+
+    suggestModifications: protectedProcedure
+      .input(z.object({
+        contractText: z.string().min(1),
+        contractType: z.string().optional(),
+        focusAreas: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert contract drafter. Suggest specific modifications and improvements to the contract.',
+            },
+            {
+              role: 'user',
+              content: `Suggest modifications for this ${input.contractType || 'contract'}:\n\n${input.contractText}`,
+            },
+          ],
+        });
+        return {
+          success: true,
+          suggestions: response.choices?.[0]?.message?.content || '',
+          contractType: input.contractType,
+        };
       }),
   }),
 
