@@ -169,18 +169,54 @@ export default function InteractiveDemo() {
   };
 
   return (
-    <div className="w-full bg-gradient-to-b from-slate-900/50 to-slate-950/50 rounded-xl border border-slate-700/50 p-4 sm:p-6 backdrop-blur-xl">
+    <div className="w-full bg-gradient-to-b from-slate-900/50 to-slate-950/50 rounded-xl border border-slate-700/50 p-3 sm:p-4 backdrop-blur-xl max-w-5xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <p className="text-slate-400 text-sm sm:text-base">
+      <div className="mb-4">
+        <p className="text-slate-400 text-xs sm:text-sm">
           Watch how Legal OS analyzes contracts, detects risks, and enables real-time collaboration
         </p>
       </div>
 
+      {/* Controls - Moved Below Description */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mb-4">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handlePlayPause}
+          className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg font-semibold transition-all shadow-lg shadow-blue-500/30 text-xs"
+        >
+          {isPlaying ? (
+            <>
+              <Pause className="w-3.5 h-3.5" />
+              <span>Pause</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-3.5 h-3.5" />
+              <span>Play Demo</span>
+            </>
+          )}
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleReset}
+          className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 rounded-lg font-semibold transition-all border border-slate-700/50 text-xs"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Reset</span>
+        </motion.button>
+
+        <div className="text-slate-400 text-xs ml-auto">
+          {currentStep + 1}/{demoSteps.length}
+        </div>
+      </div>
+
       {/* Main Demo Area */}
-      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 mb-4">
+      <div className="grid lg:grid-cols-3 gap-2 sm:gap-3 mb-3">
         {/* Left: Steps Timeline */}
-        <div className="lg:col-span-1 space-y-2">
+        <div className="lg:col-span-1 space-y-1.5">
           {demoSteps.map((step, index) => (
             <motion.button
               key={step.id}
@@ -217,7 +253,7 @@ export default function InteractiveDemo() {
         </div>
 
         {/* Right: Live Demo Display */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 min-h-0">
           <AnimatePresence mode="wait">
             {currentStep === 0 && (
               <motion.div
@@ -447,53 +483,18 @@ export default function InteractiveDemo() {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mb-6">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handlePlayPause}
-          className="flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg font-semibold transition-all shadow-lg shadow-blue-500/30 text-xs sm:text-sm"
-        >
-          {isPlaying ? (
-            <>
-              <Pause className="w-4 h-4" />
-              <span className="hidden sm:inline">Pause</span>
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              <span>Play Demo</span>
-            </>
-          )}
-        </motion.button>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={handleReset}
-          className="flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 rounded-lg font-semibold transition-all border border-slate-700/50 text-xs sm:text-sm"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Reset</span>
-        </motion.button>
-
-        {/* Step Indicator */}
-        <div className="text-slate-400 text-xs sm:text-sm ml-auto">
-          {currentStep + 1}/{demoSteps.length}
-        </div>
-      </div>
 
       {/* CTA */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="p-4 sm:p-6 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl text-center"
+        className="p-2.5 sm:p-3 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-lg text-center"
       >
-        <p className="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Ready to transform your legal practice?</p>
-        <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold shadow-lg shadow-blue-500/30 text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2">
-          Start Your Free Trial <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
+        <p className="text-white font-semibold mb-1.5 sm:mb-2 text-xs sm:text-sm">Ready to transform your legal practice?</p>
+        <Button className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold shadow-lg shadow-blue-500/30 text-xs px-2.5 sm:px-3 py-1 sm:py-1.5">
+          Start Your Free Trial <ArrowRight className="w-3 h-3 ml-1" />
         </Button>
       </motion.div>
     </div>

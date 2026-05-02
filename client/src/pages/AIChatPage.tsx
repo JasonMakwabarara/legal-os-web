@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Loader2, Plus, MessageSquare } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { AIChatAssistant } from '@/components/AIChatAssistant';
+import AILegalAssistant from '@/components/AILegalAssistant';
 
 /**
  * AI Chat Page
@@ -73,10 +73,7 @@ export default function AIChatPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Chat Area */}
           <div className="lg:col-span-3">
-            <AIChatAssistant
-              conversationId={selectedConversationId || undefined}
-              onClose={() => setSelectedConversationId(null)}
-            />
+            <AILegalAssistant />
           </div>
 
           {/* Sidebar - Future: Conversation History */}
