@@ -1,5 +1,5 @@
 import DashboardLayout from '@/components/DashboardLayout';
-import OCRProcessing from '@/components/OCRProcessing';
+import DocumentUploadWidget from '@/components/DocumentUploadWidget';
 
 export default function OCRProcessingPage() {
   return (
@@ -9,7 +9,7 @@ export default function OCRProcessingPage() {
           <h1 className="text-3xl font-bold text-white mb-2">OCR Processing</h1>
           <p className="text-slate-400">Upload and process documents with optical character recognition</p>
         </div>
-        <OCRProcessing />
+        <DocumentUploadWidget />
       </div>
     </DashboardLayout>
   );

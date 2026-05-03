@@ -40,9 +40,7 @@ export default function DocumentManagement() {
   }
 
   // Fetch documents from backend
-  const { data: documents = [], isLoading: documentsLoading, error: documentsError } = trpc.documents.list.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
+  const { data: documents = [], isLoading: documentsLoading, error: documentsError } = trpc.documents.upload.useMutation();
 
   if (documentsLoading) {
     return (
@@ -68,9 +66,9 @@ export default function DocumentManagement() {
     );
   }
 
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'all' || doc.type === activeTab;
+  const filteredDocuments = (documents || []).filter((doc: any) => {
+    const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeTab === 'all' || doc.fileType === activeTab;
     return matchesSearch && matchesTab;
   });
 
