@@ -235,6 +235,66 @@ export const appRouter = router({
         }
         return db.getDocumentsByContract(input.contractId);
       }),
+    extractClauses: protectedProcedure
+      .input(z.object({
+        documentText: z.string().min(1),
+        documentName: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        try {
+          const response = await invokeLLM({
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a legal document analyzer. Extract individual clauses from the provided text. For each clause, identify: 1) The clause text, 2) Its category (e.g., Liability, Termination, Confidentiality, Payment), 3) Risk level (high/medium/low), 4) Confidence score (0-100). Return as JSON array.',
+              },
+              {
+                role: 'user',
+                content: `Extract clauses from this legal document:\n\n${input.documentText.substring(0, 5000)}`,
+              },
+            ],
+            response_format: {
+              type: 'json_schema',
+              json_schema: {
+                name: 'clauses',
+                strict: true,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    clauses: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          text: { type: 'string' },
+                          category: { type: 'string' },
+                          riskLevel: { type: 'string', enum: ['high', 'medium', 'low'] },
+                          confidence: { type: 'number' },
+                        },
+                        required: ['text', 'category', 'riskLevel', 'confidence'],
+                      },
+                    },
+                  },
+                  required: ['clauses'],
+                },
+              },
+            },
+          });
+
+          const clauseData = JSON.parse(response.choices?.[0]?.message?.content as string);
+          return {
+            success: true,
+            clauses: clauseData.clauses || [],
+            documentName: input.documentName,
+          };
+        } catch (error) {
+          console.error('Clause extraction error:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to extract clauses' });
+        }
+      }),
   }),
 
   // AI Analysis router

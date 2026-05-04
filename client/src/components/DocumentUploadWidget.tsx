@@ -30,7 +30,7 @@ export default function DocumentUploadWidget() {
   const [selectedDoc, setSelectedDoc] = useState<UploadedDocument | null>(null);
 
   const uploadMutation = trpc.documents.upload.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.id === data.fileKey
@@ -39,7 +39,7 @@ export default function DocumentUploadWidget() {
         )
       );
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.status === 'uploading'
@@ -51,7 +51,7 @@ export default function DocumentUploadWidget() {
   });
 
   const extractMutation = trpc.documents.extractClauses.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.status === 'processing'
@@ -65,7 +65,7 @@ export default function DocumentUploadWidget() {
         )
       );
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.status === 'processing'
@@ -101,13 +101,14 @@ export default function DocumentUploadWidget() {
         const reader = new FileReader();
         reader.onload = async (e) => {
           const base64Content = (e.target?.result as string).split(',')[1];
-          const fileType = file.type === 'text/plain' ? 'txt' : file.type.includes('word') ? 'docx' : 'pdf';
+          const fileMimeType = file.type || 'application/octet-stream';
 
           await uploadMutation.mutateAsync({
             fileName: file.name,
             fileContent: base64Content,
-            fileType: fileType as 'pdf' | 'docx' | 'txt',
+            fileMimeType: fileMimeType,
             fileSize: file.size,
+            tempId: docId,
           });
 
           // Simulate text extraction for demo
