@@ -686,3 +686,8 @@ export const searchAnalytics = mysqlTable("searchAnalytics", {
 
 export type SearchAnalytics = typeof searchAnalytics.$inferSelect;
 export type InsertSearchAnalytics = typeof searchAnalytics.$inferInsert;
+
+
+/**
+ * Clause Templates table - stores reusable contract clause templates
+ */

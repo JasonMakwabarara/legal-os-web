@@ -24,6 +24,7 @@ import BlogResources from "./pages/BlogResources";
 import AdvancedSearchPage from "./pages/AdvancedSearchPage";
 import OCRProcessingPage from "./pages/OCRProcessingPage";
 import ClauseComparisonPage from "./pages/ClauseComparisonPage";
+import TemplateLibraryPage from "./pages/TemplateLibraryPage";
 
 /**
  * Legal OS Application Router
@@ -60,6 +61,7 @@ function Router() {
       <Route path={"/template-builder"} component={ClauseTemplateBuilder} />
       <Route path={"/approvals"} component={TemplateApprovalDashboard} />
       <Route path={"/blog"} component={BlogResources} />
+      <Route path={"/templates"} component={TemplateLibraryPage} />
       <Route path={"/accept-invitation/:code"} component={AcceptInvitation} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Search, FileText, GitCompare } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Search, FileText, GitCompare, Library } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -34,6 +34,7 @@ const menuItems = [
   { icon: Search, label: "Advanced Search", path: "/search" },
   { icon: FileText, label: "OCR Processing", path: "/ocr" },
   { icon: GitCompare, label: "Clause Comparison", path: "/comparison" },
+  { icon: Library, label: "Template Library", path: "/templates" },
   { icon: Users, label: "Team", path: "/team" },
 ];
 
