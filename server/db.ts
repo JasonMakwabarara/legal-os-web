@@ -20,6 +20,7 @@ import {
   documentDrafts,
   eSignatures,
   signatureAuditTrail,
+  integrations,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -99,17 +100,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(users).where(eq(users.openId, openId));
+  return rows[0] || null;
 }
 
-// Contract queries
+// Contracts queries
 export async function getContractsByFirm(firmId: number) {
   const db = await getDb();
   if (!db) return [];
@@ -118,20 +114,17 @@ export async function getContractsByFirm(firmId: number) {
 
 export async function getContractById(contractId: number, firmId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select()
-    .from(contracts)
-    .where(and(eq(contracts.id, contractId), eq(contracts.firmId, firmId)))
-    .limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(contracts).where(
+    and(eq(contracts.id, contractId), eq(contracts.firmId, firmId))
+  );
+  return rows[0] || null;
 }
 
 export async function createContract(data: typeof contracts.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(contracts).values(data);
-  return result;
+  return db.insert(contracts).values(data);
 }
 
 export async function updateContract(contractId: number, data: Partial<typeof contracts.$inferInsert>) {
@@ -140,7 +133,7 @@ export async function updateContract(contractId: number, data: Partial<typeof co
   return db.update(contracts).set(data).where(eq(contracts.id, contractId));
 }
 
-// Case queries
+// Cases queries
 export async function getCasesByFirm(firmId: number) {
   const db = await getDb();
   if (!db) return [];
@@ -149,16 +142,14 @@ export async function getCasesByFirm(firmId: number) {
 
 export async function getCaseById(caseId: number, firmId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select()
-    .from(cases)
-    .where(and(eq(cases.id, caseId), eq(cases.firmId, firmId)))
-    .limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(cases).where(
+    and(eq(cases.id, caseId), eq(cases.firmId, firmId))
+  );
+  return rows[0] || null;
 }
 
-// Client queries
+// Clients queries
 export async function getClientsByFirm(firmId: number) {
   const db = await getDb();
   if (!db) return [];
@@ -167,16 +158,14 @@ export async function getClientsByFirm(firmId: number) {
 
 export async function getClientById(clientId: number, firmId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select()
-    .from(clients)
-    .where(and(eq(clients.id, clientId), eq(clients.firmId, firmId)))
-    .limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(clients).where(
+    and(eq(clients.id, clientId), eq(clients.firmId, firmId))
+  );
+  return rows[0] || null;
 }
 
-// Document queries
+// Documents queries
 export async function getDocumentsByFirm(firmId: number) {
   const db = await getDb();
   if (!db) return [];
@@ -195,7 +184,7 @@ export async function createDocument(data: typeof documents.$inferInsert) {
   return db.insert(documents).values(data);
 }
 
-// Risk Alert queries
+// Risk Alerts queries
 export async function getRiskAlertsByContract(contractId: number) {
   const db = await getDb();
   if (!db) return [];
@@ -240,7 +229,7 @@ export async function createContractVersion(data: typeof contractVersions.$infer
   return db.insert(contractVersions).values(data);
 }
 
-// Workflow queries
+// Workflows queries
 export async function createWorkflow(data: typeof workflows.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -249,9 +238,9 @@ export async function createWorkflow(data: typeof workflows.$inferInsert) {
 
 export async function getWorkflowById(workflowId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(workflows).where(eq(workflows.id, workflowId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(workflows).where(eq(workflows.id, workflowId));
+  return rows[0] || null;
 }
 
 export async function updateWorkflow(workflowId: number, data: Partial<typeof workflows.$inferInsert>) {
@@ -260,28 +249,26 @@ export async function updateWorkflow(workflowId: number, data: Partial<typeof wo
   return db.update(workflows).set(data).where(eq(workflows.id, workflowId));
 }
 
-// Audit Log queries
+// Audit Logs queries
 export async function createAuditLog(data: typeof auditLogs.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.insert(auditLogs).values(data);
 }
 
-// Firm queries
+// Firms queries
 export async function getFirmById(firmId: number) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(firms).where(eq(firms.id, firmId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (!db) return null;
+  const rows = await db.select().from(firms).where(eq(firms.id, firmId));
+  return rows[0] || null;
 }
 
 export async function createFirm(data: typeof firms.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(firms).values(data);
-  // Get the created firm
-  const created = await db.select().from(firms).orderBy(firms.id).limit(1);
-  return created[0];
+  return { id: result[0].insertId };
 }
 
 export async function assignUserToFirm(userId: number, firmId: number) {
@@ -290,6 +277,42 @@ export async function assignUserToFirm(userId: number, firmId: number) {
   return db.update(users).set({ firmId }).where(eq(users.id, userId));
 }
 
+// Integration functions
+export async function createIntegration(data: typeof integrations.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(integrations).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function getIntegration(integrationId: number, firmId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(integrations).where(
+    and(eq(integrations.id, integrationId), eq(integrations.firmId, firmId))
+  );
+  return rows[0] || null;
+}
+
+export async function getIntegrationsByFirm(firmId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(integrations).where(eq(integrations.firmId, firmId));
+}
+
+export async function updateIntegrationSync(integrationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(integrations)
+    .set({ lastSyncAt: new Date() })
+    .where(eq(integrations.id, integrationId));
+}
+
+export async function deleteIntegration(integrationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(integrations).where(eq(integrations.id, integrationId));
+}
 
 // Client Communication queries
 export async function getClientCommunications(clientId: number) {
@@ -304,11 +327,14 @@ export async function createClientCommunication(data: typeof clientCommunication
   return db.insert(clientCommunications).values(data);
 }
 
-// Notification queries
-export async function getUserNotifications(userId: number) {
+// Notifications queries
+export async function getNotifications(userId: number, limit = 20) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(notifications).where(eq(notifications.userId, userId));
+  return db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
 }
 
 export async function createNotification(data: typeof notifications.$inferInsert) {
@@ -317,24 +343,19 @@ export async function createNotification(data: typeof notifications.$inferInsert
   return db.insert(notifications).values(data);
 }
 
-export async function markNotificationAsRead(notificationId: number) {
+// AI Chat queries
+export async function createAIChatMessage(data: typeof aiChatMessages.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.update(notifications).set({ isRead: 1, readAt: new Date() }).where(eq(notifications.id, notificationId));
+  return db.insert(aiChatMessages).values(data);
 }
 
-// AI Chat Conversation queries
-export async function getAIChatConversation(conversationId: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(aiChatConversations).where(eq(aiChatConversations.id, conversationId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
-}
-
-export async function getUserAIChatConversations(userId: number) {
+export async function getAIChatMessages(conversationId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(aiChatConversations).where(eq(aiChatConversations.userId, userId));
+  return db.select().from(aiChatMessages)
+    .where(eq(aiChatMessages.conversationId, conversationId))
+    .orderBy(aiChatMessages.createdAt);
 }
 
 export async function createAIChatConversation(data: typeof aiChatConversations.$inferInsert) {
@@ -343,83 +364,10 @@ export async function createAIChatConversation(data: typeof aiChatConversations.
   return db.insert(aiChatConversations).values(data);
 }
 
-// AI Chat Message queries
-export async function getAIChatMessages(conversationId: string) {
+export async function getAIChatConversations(userId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(aiChatMessages).where(eq(aiChatMessages.conversationId, conversationId));
-}
-
-export async function createAIChatMessage(data: typeof aiChatMessages.$inferInsert) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.insert(aiChatMessages).values(data);
-}
-
-
-// Document Draft queries
-export async function getDocumentDrafts(firmId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(documentDrafts).where(eq(documentDrafts.firmId, firmId));
-}
-
-export async function getDocumentDraftById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(documentDrafts).where(eq(documentDrafts.id, id));
-  return result[0] || null;
-}
-
-export async function createDocumentDraft(data: typeof documentDrafts.$inferInsert) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(documentDrafts).values(data);
-  return result;
-}
-
-export async function updateDocumentDraft(id: number, data: Partial<typeof documentDrafts.$inferInsert>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.update(documentDrafts).set(data).where(eq(documentDrafts.id, id));
-}
-
-// E-Signature queries
-export async function getESignatures(documentId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(eSignatures).where(eq(eSignatures.documentId, documentId));
-}
-
-export async function getESignatureById(id: number) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.select().from(eSignatures).where(eq(eSignatures.id, id));
-  return result[0] || null;
-}
-
-export async function createESignature(data: typeof eSignatures.$inferInsert) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(eSignatures).values(data);
-  return result;
-}
-
-export async function updateESignature(id: number, data: Partial<typeof eSignatures.$inferInsert>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.update(eSignatures).set(data).where(eq(eSignatures.id, id));
-}
-
-// Signature Audit Trail queries
-export async function getSignatureAuditTrail(signatureId: number) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(signatureAuditTrail).where(eq(signatureAuditTrail.signatureId, signatureId));
-}
-
-export async function createSignatureAuditEntry(data: typeof signatureAuditTrail.$inferInsert) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.insert(signatureAuditTrail).values(data);
+  return db.select().from(aiChatConversations)
+    .where(eq(aiChatConversations.userId, userId))
+    .orderBy(desc(aiChatConversations.updatedAt));
 }

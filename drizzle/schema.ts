@@ -689,5 +689,24 @@ export type InsertSearchAnalytics = typeof searchAnalytics.$inferInsert;
 
 
 /**
+ * Integrations table - stores third-party service integrations (Slack, Salesforce, Teams, Outlook)
+ */
+export const integrations = mysqlTable("integrations", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  type: mysqlEnum("type", ["slack", "salesforce", "teams", "outlook"]).notNull(),
+  status: mysqlEnum("status", ["active", "inactive", "error"]).default("active").notNull(),
+  config: json("config").$type<Record<string, any>>().notNull(), // Store integration-specific config
+  createdBy: int("createdBy").notNull(),
+  lastSyncAt: timestamp("lastSyncAt"),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Integration = typeof integrations.$inferSelect;
+export type InsertIntegration = typeof integrations.$inferInsert;
+
+/**
  * Clause Templates table - stores reusable contract clause templates
  */

@@ -12,9 +12,19 @@ import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
 import { templatesRouter } from "./routers-templates";
 import { invitationsRouter } from "./routers-invitations";
 import { searchRouter } from "./routers-search";
+import { integrationsRouter } from "./routers-integrations";
+import { workflowsRouter } from "./routers-workflows";
+import { eSignaturesRouter } from "./routers-esignatures";
+import { researchRouter } from "./routers-research";
+import { complianceRouter } from "./routers-compliance";
 
 export const appRouter = router({
   system: systemRouter,
+  integrations: integrationsRouter,
+  workflows: workflowsRouter,
+  eSignatures: eSignaturesRouter,
+  research: researchRouter,
+  compliance: complianceRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     initializeFirm: protectedProcedure
