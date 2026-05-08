@@ -214,14 +214,14 @@ export default function LandingPage() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-32 px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-24 pb-20 px-4 sm:px-6 lg:px-8">
         <motion.div
           className="max-w-5xl mx-auto text-center"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants} className="mb-6">
+          <motion.div variants={itemVariants} className="mb-4">
             <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/50 rounded-full text-blue-300 text-sm font-semibold backdrop-blur">
               ✨ Powered by Advanced AI
             </span>
@@ -229,7 +229,7 @@ export default function LandingPage() {
 
           <motion.h1
             variants={itemVariants}
-            className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight"
+            className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight"
           >
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
               AI-Powered Legal Practice
@@ -240,14 +240,14 @@ export default function LandingPage() {
 
           <motion.p
             variants={itemVariants}
-            className="text-xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg text-slate-300 mb-6 max-w-3xl mx-auto leading-relaxed"
           >
             Streamline your legal workflow with intelligent contract analysis, real-time collaboration, and predictive analytics. Built for modern law firms that demand excellence.
           </motion.p>
 
           <motion.div
             variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
@@ -290,12 +290,12 @@ export default function LandingPage() {
 
         {/* Floating Card Preview */}
         <motion.div
-          className="mt-20 max-w-4xl mx-auto"
+          className="mt-12 max-w-4xl mx-auto"
           variants={floatingVariants}
           animate="animate"
         >
-          <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-8 backdrop-blur-xl shadow-2xl">
-            <div className="grid grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-5 backdrop-blur-xl shadow-2xl">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 { title: 'Smart Analysis', Icon: Brain },
                 { title: 'Risk Detection', Icon: AlertTriangle },
@@ -305,7 +305,7 @@ export default function LandingPage() {
                 return (
                   <motion.div
                     key={i}
-                    className="h-24 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/60 transition-colors"
+                    className="h-20 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/60 transition-colors"
                     whileHover={{ scale: 1.05 }}
                   >
                     <Icon className="w-6 h-6 text-blue-400 mb-2" />
@@ -319,7 +319,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
         <motion.div
           className="max-w-6xl mx-auto"
           variants={containerVariants}
@@ -327,34 +327,34 @@ export default function LandingPage() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-4">
+          <motion.div variants={itemVariants} className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-white mb-3">
               Powerful Features for Modern Law Firms
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-400 text-base max-w-2xl mx-auto">
               Everything you need to manage your legal practice efficiently and securely
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-4">
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
                 <motion.div
                   key={idx}
                   variants={itemVariants}
-                  whileHover={{ y: -8 }}
+                  whileHover={{ y: -4 }}
                   className="group"
                 >
-                  <Card className="bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl p-8 h-full transition-all duration-300">
+                  <Card className="bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl p-4 h-full transition-all duration-300">
                     <motion.div
-                      className={`w-14 h-14 rounded-lg bg-gradient-to-br ${feature.color} p-3 mb-6 shadow-lg`}
+                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.color} p-2 mb-3 shadow-lg`}
                          whileHover={{ rotate: 10, scale: 1.1 }}
                     >
                       <Icon className="w-full h-full text-white" />
                     </motion.div>
-                    <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                    <p className="text-slate-400 leading-relaxed">{feature.description}</p>
+                    <h3 className="text-base font-bold text-white mb-2">{feature.title}</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
                   </Card>
                 </motion.div>
               );
@@ -364,7 +364,7 @@ export default function LandingPage() {
       </section>
 
       {/* Interactive Demo Section */}
-      <section ref={demoRef} className="py-32 px-4 sm:px-6 lg:px-8 relative">
+      <section ref={demoRef} className="py-20 px-4 sm:px-6 lg:px-8 relative">
         <motion.div
           className="max-w-6xl mx-auto"
           variants={containerVariants}
@@ -372,8 +372,8 @@ export default function LandingPage() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-4">
+          <motion.div variants={itemVariants} className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-white mb-3">
               Experience Legal OS in Action
             </h2>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto">
@@ -389,7 +389,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-900/50 to-blue-900/30 relative">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-900/50 to-blue-900/30 relative">
         <motion.div
           className="max-w-6xl mx-auto"
           variants={containerVariants}
@@ -399,27 +399,27 @@ export default function LandingPage() {
         >
           <motion.h2
             variants={itemVariants}
-            className="text-4xl font-bold text-white mb-16 text-center"
+            className="text-4xl font-bold text-white mb-10 text-center"
           >
             Trusted by Leading Law Firms
           </motion.h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-4">
             {testimonials.map((testimonial, idx) => (
               <motion.div
                 key={idx}
                 variants={itemVariants}
-                whileHover={{ y: -8 }}
-                className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-8 backdrop-blur-xl"
+                whileHover={{ y: -4 }}
+                className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 backdrop-blur-xl"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-4xl">{testimonial.avatar}</span>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">{testimonial.avatar}</span>
                   <div>
-                    <p className="font-semibold text-white">{testimonial.name}</p>
-                    <p className="text-sm text-slate-400">{testimonial.role}</p>
+                    <p className="font-semibold text-white text-sm">{testimonial.name}</p>
+                    <p className="text-xs text-slate-400">{testimonial.role}</p>
                   </div>
                 </div>
-                <p className="text-slate-300 leading-relaxed">"{testimonial.content}"</p>
+                <p className="text-slate-300 text-sm leading-relaxed">"{testimonial.content}"</p>
               </motion.div>
             ))}
           </div>
@@ -427,7 +427,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
         <motion.div
           className="max-w-6xl mx-auto"
           variants={containerVariants}
@@ -435,12 +435,12 @@ export default function LandingPage() {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <motion.div variants={itemVariants} className="text-center mb-12">
-            <h2 className="text-5xl font-bold text-white mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-slate-400 text-lg mb-8">Choose the plan that fits your firm's needs</p>
+          <motion.div variants={itemVariants} className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-white mb-2">Simple, Transparent Pricing</h2>
+            <p className="text-slate-400 text-base mb-6">Choose the plan that fits your firm's needs</p>
 
             {/* Billing Toggle */}
-            <div className="flex justify-center gap-4 mb-12">
+            <div className="flex justify-center gap-4 mb-8">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -468,16 +468,16 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-4">
             {pricingPlans.map((plan, idx) => (
               <motion.div
                 key={idx}
                 variants={itemVariants}
-                whileHover={{ y: -12 }}
+                whileHover={{ y: -6 }}
                 className="group"
               >
                 <Card
-                  className={`p-8 transition-all duration-300 relative overflow-hidden h-full ${
+                  className={`p-5 transition-all duration-300 relative overflow-hidden h-full ${
                     plan.highlighted
                       ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border-blue-500/50 shadow-2xl shadow-blue-500/30 scale-105'
                       : 'bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl'
@@ -493,19 +493,19 @@ export default function LandingPage() {
                     </motion.div>
                   )}
 
-                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                  <p className={`mb-6 ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
+                  <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
+                  <p className={`mb-4 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
                     {plan.description}
                   </p>
 
-                  <div className="mb-8">
-                    <span className="text-5xl font-bold text-white">${plan.price}</span>
-                    <span className={plan.highlighted ? 'text-blue-100' : 'text-slate-400'}>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold text-white">${plan.price}</span>
+                    <span className={`text-xs ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
                       {' '}{plan.period}
                     </span>
                   </div>
 
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mb-8">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mb-4">
                     <Button
                       onClick={() => (window.location.href = getLoginUrl())}
                       className={`w-full font-semibold ${
@@ -518,11 +518,11 @@ export default function LandingPage() {
                     </Button>
                   </motion.div>
 
-                  <ul className="space-y-4">
+                  <ul className="space-y-2">
                     {plan.features.map((feature, fidx) => (
                       <motion.li
                         key={fidx}
-                        className={`flex items-center gap-3 ${
+                        className={`flex items-center gap-2 text-sm ${
                           plan.highlighted ? 'text-white' : 'text-slate-300'
                         }`}
                         whileHover={{ x: 5 }}
