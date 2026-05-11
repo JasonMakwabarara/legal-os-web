@@ -21,8 +21,17 @@ import {
   eSignatures,
   signatureAuditTrail,
   integrations,
+  timeEntries,
+  timesheets,
+  billableRates,
+  timeTrackingSessions,
+  invoices,
+  invoiceLineItems,
+  timeEntryAdjustments,
+  timeTrackingAnalytics,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { desc, eq, and, gte, lte, between } from 'drizzle-orm';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -370,4 +379,219 @@ export async function getAIChatConversations(userId: number) {
   return db.select().from(aiChatConversations)
     .where(eq(aiChatConversations.userId, userId))
     .orderBy(desc(aiChatConversations.updatedAt));
+}
+
+
+// ============================================================================
+// TIME TRACKING QUERIES
+// ============================================================================
+
+// Time Entries
+export async function createTimeEntry(data: typeof timeEntries.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(timeEntries).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getTimeEntryById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(timeEntries).where(eq(timeEntries.id, id));
+  return results[0] || null;
+}
+
+export async function getTimeEntriesByDateRange(
+  firmId: number,
+  userId: number,
+  startDate: Date,
+  endDate: Date
+) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.firmId, firmId),
+        eq(timeEntries.userId, userId),
+        gte(timeEntries.startTime, startDate),
+        lte(timeEntries.startTime, endDate)
+      )
+    )
+    .orderBy(desc(timeEntries.startTime));
+}
+
+export async function updateTimeEntry(id: number, data: Partial<typeof timeEntries.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(timeEntries).set(data).where(eq(timeEntries.id, id));
+  return getTimeEntryById(id);
+}
+
+// Time Tracking Sessions
+export async function createTimeTrackingSession(data: typeof timeTrackingSessions.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(timeTrackingSessions).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getTimeTrackingSessionById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(timeTrackingSessions).where(eq(timeTrackingSessions.id, id));
+  return results[0] || null;
+}
+
+export async function getTimeTrackingSessionsByUser(
+  firmId: number,
+  userId: number,
+  status?: string
+) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [
+    eq(timeTrackingSessions.firmId, firmId),
+    eq(timeTrackingSessions.userId, userId),
+  ];
+  if (status) {
+    conditions.push(eq(timeTrackingSessions.status, status as any));
+  }
+  return db.select().from(timeTrackingSessions)
+    .where(and(...conditions))
+    .orderBy(desc(timeTrackingSessions.startTime));
+}
+
+export async function updateTimeTrackingSession(
+  id: number,
+  data: Partial<typeof timeTrackingSessions.$inferInsert>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(timeTrackingSessions).set(data).where(eq(timeTrackingSessions.id, id));
+  return getTimeTrackingSessionById(id);
+}
+
+export async function deleteTimeTrackingSession(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(timeTrackingSessions).where(eq(timeTrackingSessions.id, id));
+}
+
+// Billable Rates
+export async function createBillableRate(data: typeof billableRates.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(billableRates).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getBillableRateForUser(firmId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(billableRates)
+    .where(
+      and(
+        eq(billableRates.firmId, firmId),
+        eq(billableRates.userId, userId),
+        eq(billableRates.isActive, "yes")
+      )
+    )
+    .orderBy(desc(billableRates.effectiveDate))
+    .limit(1);
+  return results[0] || null;
+}
+
+// Timesheets
+export async function createTimesheet(data: typeof timesheets.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(timesheets).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getTimesheetById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(timesheets).where(eq(timesheets.id, id));
+  return results[0] || null;
+}
+
+export async function updateTimesheet(id: number, data: Partial<typeof timesheets.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(timesheets).set(data).where(eq(timesheets.id, id));
+  return getTimesheetById(id);
+}
+
+// Invoices
+export async function createInvoice(data: typeof invoices.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(invoices).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getInvoiceById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const results = await db.select().from(invoices).where(eq(invoices.id, id));
+  return results[0] || null;
+}
+
+export async function updateInvoice(id: number, data: Partial<typeof invoices.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(invoices).set(data).where(eq(invoices.id, id));
+  return getInvoiceById(id);
+}
+
+// Invoice Line Items
+export async function createInvoiceLineItem(data: typeof invoiceLineItems.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(invoiceLineItems).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getInvoiceLineItems(invoiceId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(invoiceLineItems).where(eq(invoiceLineItems.invoiceId, invoiceId));
+}
+
+// Time Entry Adjustments
+export async function createTimeEntryAdjustment(data: typeof timeEntryAdjustments.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(timeEntryAdjustments).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+// Time Tracking Analytics
+export async function createTimeTrackingAnalytics(data: typeof timeTrackingAnalytics.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(timeTrackingAnalytics).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getTimeTrackingAnalytics(
+  firmId: number,
+  userId: number,
+  startDate: Date,
+  endDate: Date
+) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(timeTrackingAnalytics)
+    .where(
+      and(
+        eq(timeTrackingAnalytics.firmId, firmId),
+        eq(timeTrackingAnalytics.userId, userId),
+        gte(timeTrackingAnalytics.date, startDate),
+        lte(timeTrackingAnalytics.date, endDate)
+      )
+    )
+    .orderBy(timeTrackingAnalytics.date);
 }

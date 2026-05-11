@@ -64,6 +64,13 @@
       "when": 1778232703449,
       "tag": "0008_late_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1778491237786,
+      "tag": "0009_pink_khan",
+      "breakpoints": true
     }
   ]
 }

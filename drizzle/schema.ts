@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json, tinyint, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json, tinyint, boolean, date } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -710,3 +710,199 @@ export type InsertIntegration = typeof integrations.$inferInsert;
 /**
  * Clause Templates table - stores reusable contract clause templates
  */
+
+/**
+ * Time Entries table - tracks individual time entries for billable work
+ */
+export const timeEntries = mysqlTable("timeEntries", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  caseId: int("caseId"), // Optional: linked to specific case
+  contractId: int("contractId"), // Optional: linked to specific contract
+  taskType: mysqlEnum("taskType", [
+    "research",
+    "drafting",
+    "review",
+    "client_meeting",
+    "court_appearance",
+    "negotiation",
+    "filing",
+    "consultation",
+    "administrative",
+    "other",
+  ]).notNull(),
+  description: text("description").notNull(),
+  startTime: timestamp("startTime").notNull(),
+  endTime: timestamp("endTime"),
+  durationMinutes: int("durationMinutes"), // Calculated duration
+  billableMinutes: int("billableMinutes"), // May differ from duration if non-billable
+  isBillable: mysqlEnum("isBillable", ["yes", "no"]).default("yes").notNull(),
+  hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }), // Rate for this entry
+  billableAmount: decimal("billableAmount", { precision: 12, scale: 2 }), // Calculated: billableMinutes * hourlyRate
+  status: mysqlEnum("status", ["draft", "submitted", "approved", "billed", "paid"]).default("draft").notNull(),
+  notes: text("notes"),
+  tags: json("tags").$type<string[]>(), // For categorization
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TimeEntry = typeof timeEntries.$inferSelect;
+export type InsertTimeEntry = typeof timeEntries.$inferInsert;
+
+/**
+ * Time Entry Adjustments table - tracks manual adjustments to time entries
+ */
+export const timeEntryAdjustments = mysqlTable("timeEntryAdjustments", {
+  id: int("id").autoincrement().primaryKey(),
+  timeEntryId: int("timeEntryId").notNull(),
+  adjustmentType: mysqlEnum("adjustmentType", ["write_off", "rate_change", "duration_change", "billability_change"]).notNull(),
+  originalValue: text("originalValue").notNull(), // JSON stringified original value
+  newValue: text("newValue").notNull(), // JSON stringified new value
+  reason: text("reason"),
+  adjustedBy: int("adjustedBy").notNull(), // User who made adjustment
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TimeEntryAdjustment = typeof timeEntryAdjustments.$inferSelect;
+export type InsertTimeEntryAdjustment = typeof timeEntryAdjustments.$inferInsert;
+
+/**
+ * Timesheets table - weekly/monthly timesheets for submission and approval
+ */
+export const timesheets = mysqlTable("timesheets", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  periodStartDate: date("periodStartDate").notNull(),
+  periodEndDate: date("periodEndDate").notNull(),
+  totalHours: decimal("totalHours", { precision: 8, scale: 2 }).default("0"),
+  totalBillableHours: decimal("totalBillableHours", { precision: 8, scale: 2 }).default("0"),
+  totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }).default("0"),
+  status: mysqlEnum("status", ["draft", "submitted", "approved", "rejected", "billed"]).default("draft").notNull(),
+  submittedAt: timestamp("submittedAt"),
+  approvedAt: timestamp("approvedAt"),
+  approvedBy: int("approvedBy"), // Manager who approved
+  rejectionReason: text("rejectionReason"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Timesheet = typeof timesheets.$inferSelect;
+export type InsertTimesheet = typeof timesheets.$inferInsert;
+
+/**
+ * Billable Rates table - stores hourly rates per user/role/practice area
+ */
+export const billableRates = mysqlTable("billableRates", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId"), // Optional: specific user rate, if null applies to role
+  role: varchar("role", { length: 64 }), // e.g., "partner", "associate", "paralegal"
+  practiceArea: varchar("practiceArea", { length: 255 }), // e.g., "corporate", "litigation"
+  hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }).notNull(),
+  effectiveDate: date("effectiveDate").notNull(),
+  expiryDate: date("expiryDate"),
+  isActive: mysqlEnum("isActive", ["yes", "no"]).default("yes").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BillableRate = typeof billableRates.$inferSelect;
+export type InsertBillableRate = typeof billableRates.$inferInsert;
+
+/**
+ * Time Tracking Sessions table - tracks active timer sessions
+ */
+export const timeTrackingSessions = mysqlTable("timeTrackingSessions", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId").notNull(),
+  caseId: int("caseId"),
+  contractId: int("contractId"),
+  taskType: mysqlEnum("taskType", [
+    "research",
+    "drafting",
+    "review",
+    "client_meeting",
+    "court_appearance",
+    "negotiation",
+    "filing",
+    "consultation",
+    "administrative",
+    "other",
+  ]).notNull(),
+  description: text("description"),
+  startTime: timestamp("startTime").notNull(),
+  pausedAt: timestamp("pausedAt"), // For paused sessions
+  totalPausedMinutes: int("totalPausedMinutes").default(0),
+  status: mysqlEnum("status", ["running", "paused", "stopped"]).default("running").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TimeTrackingSession = typeof timeTrackingSessions.$inferSelect;
+export type InsertTimeTrackingSession = typeof timeTrackingSessions.$inferInsert;
+
+/**
+ * Invoices table - tracks invoices generated from billable time
+ */
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  clientId: int("clientId").notNull(), // Client being billed
+  invoiceNumber: varchar("invoiceNumber", { length: 64 }).notNull().unique(),
+  periodStartDate: date("periodStartDate").notNull(),
+  periodEndDate: date("periodEndDate").notNull(),
+  totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }).notNull(),
+  totalHours: decimal("totalHours", { precision: 8, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["draft", "sent", "paid", "overdue", "cancelled"]).default("draft").notNull(),
+  issuedDate: date("issuedDate"),
+  dueDate: date("dueDate"),
+  paidDate: date("paidDate"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+
+/**
+ * Invoice Line Items table - individual entries on an invoice
+ */
+export const invoiceLineItems = mysqlTable("invoiceLineItems", {
+  id: int("id").autoincrement().primaryKey(),
+  invoiceId: int("invoiceId").notNull(),
+  timeEntryId: int("timeEntryId"), // Link to original time entry
+  description: text("description").notNull(),
+  taskType: varchar("taskType", { length: 64 }),
+  hours: decimal("hours", { precision: 8, scale: 2 }).notNull(),
+  hourlyRate: decimal("hourlyRate", { precision: 10, scale: 2 }).notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
+export type InsertInvoiceLineItem = typeof invoiceLineItems.$inferInsert;
+
+/**
+ * Time Tracking Analytics table - aggregated metrics for reporting
+ */
+export const timeTrackingAnalytics = mysqlTable("timeTrackingAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  firmId: int("firmId").notNull(),
+  userId: int("userId"),
+  date: date("date").notNull(),
+  totalHours: decimal("totalHours", { precision: 8, scale: 2 }).default("0"),
+  billableHours: decimal("billableHours", { precision: 8, scale: 2 }).default("0"),
+  nonBillableHours: decimal("nonBillableHours", { precision: 8, scale: 2 }).default("0"),
+  billabilityPercentage: decimal("billabilityPercentage", { precision: 5, scale: 2 }).default("0"),
+  totalAmount: decimal("totalAmount", { precision: 12, scale: 2 }).default("0"),
+  taskTypeBreakdown: json("taskTypeBreakdown").$type<Record<string, number>>(), // Hours by task type
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TimeTrackingAnalytics = typeof timeTrackingAnalytics.$inferSelect;
+export type InsertTimeTrackingAnalytics = typeof timeTrackingAnalytics.$inferInsert;
