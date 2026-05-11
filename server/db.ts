@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gte, lte, between } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -31,7 +31,6 @@ import {
   timeTrackingAnalytics,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { desc, eq, and, gte, lte, between } from 'drizzle-orm';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -594,4 +593,47 @@ export async function getTimeTrackingAnalytics(
       )
     )
     .orderBy(timeTrackingAnalytics.date);
+}
+
+
+// E-Signature functions
+export async function createESignature(data: typeof eSignatures.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(eSignatures).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getESignatureById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(eSignatures).where(eq(eSignatures.id, id));
+  return rows[0] || null;
+}
+
+export async function getESignaturesByDocument(documentId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(eSignatures).where(eq(eSignatures.documentId, documentId));
+}
+
+export async function updateESignature(id: number, data: Partial<typeof eSignatures.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(eSignatures).set(data).where(eq(eSignatures.id, id));
+}
+
+export async function createSignatureAuditEntry(data: typeof signatureAuditTrail.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(signatureAuditTrail).values(data);
+  return { ...data, id: result[0].insertId };
+}
+
+export async function getSignatureAuditTrail(eSignatureId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(signatureAuditTrail)
+    .where(eq(signatureAuditTrail.eSignatureId, eSignatureId))
+    .orderBy(desc(signatureAuditTrail.createdAt));
 }

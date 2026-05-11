@@ -821,7 +821,7 @@ export const appRouter = router({
         });
 
         // Create audit trail entry
-        await db.createSignatureAuditEntry({
+        await await db.createSignatureAuditEntry({
           firmId: ctx.user.firmId,
           signatureId: (signature as any).insertId,
           event: 'signed',
@@ -840,8 +840,8 @@ export const appRouter = router({
         if (!signature || signature.firmId !== ctx.user.firmId) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
         }
-        await db.updateESignature(input.id, { isVerified: 1 });
-        await db.createSignatureAuditEntry({
+        await await db.updateESignature(input.id, { isVerified: 1 });
+        await await db.createSignatureAuditEntry({
           firmId: ctx.user.firmId,
           signatureId: input.id,
           event: 'verified',
