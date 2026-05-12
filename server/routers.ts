@@ -18,6 +18,7 @@ import { eSignaturesRouter } from "./routers-esignatures";
 import { researchRouter } from "./routers-research";
 import { complianceRouter } from "./routers-compliance";
 import { timeTrackingRouter } from "./routers-timetracking";
+import { exportRouter } from "./routers-export";
 
 export const appRouter = router({
   system: systemRouter,
@@ -27,6 +28,7 @@ export const appRouter = router({
   research: researchRouter,
   compliance: complianceRouter,
   timeTracking: timeTrackingRouter,
+  export: exportRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     initializeFirm: protectedProcedure
