@@ -155,10 +155,7 @@ export const workflowsRouter = router({
         }
 
         await db.updateWorkflow(input.workflowId, {
-          ...input.data,
-          triggers: input.data.triggers as any,
-          actions: input.data.actions as any,
-          approvalChain: input.data.approvalChain as any,
+          status: (input.data.status as any) || 'pending',
         });
 
         return {
