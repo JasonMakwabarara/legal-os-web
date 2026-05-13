@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -8,7 +8,7 @@ interface TimeTrackerProps {
   onTimerStop?: (duration: number) => void;
 }
 
-export default function TimeTracker({ onTimerStop }: TimeTrackerProps) {
+export function TimeTracker({ onTimerStop }: TimeTrackerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -33,76 +33,7 @@ export default function TimeTracker({ onTimerStop }: TimeTrackerProps) {
     return () => clearInterval(interval);
   }, [isRunning, isPaused]);
 
-  // Load active session on mount
-  useEffect(() => {
-    if (getActiveSessionQuery.data) {
-      setActiveSessionId(getActiveSessionQuery.data.id);
-      setTaskType(getActiveSessionQuery.data.taskType);
-      setDescription(getActiveSessionQuery.data.description || "");
-      setIsRunning(getActiveSessionQuery.data.status === "running");
-      setIsPaused(getActiveSessionQuery.data.status === "paused");
-    }
-  }, [getActiveSessionQuery.data]);
-
-  const handleStartTimer = async () => {
-    if (!description.trim()) {
-      alert("Please enter a task description");
-      return;
-    }
-
-    try {
-      const session = await startTimerMutation.mutateAsync({
-        taskType: taskType as any,
-        description,
-      });
-      setActiveSessionId(session.id);
-      setIsRunning(true);
-      setElapsedSeconds(0);
-    } catch (error) {
-      console.error("Failed to start timer:", error);
-    }
-  };
-
-  const handlePauseTimer = async () => {
-    if (!activeSessionId) return;
-    try {
-      await pauseTimerMutation.mutateAsync({ sessionId: activeSessionId });
-      setIsRunning(false);
-      setIsPaused(true);
-    } catch (error) {
-      console.error("Failed to pause timer:", error);
-    }
-  };
-
-  const handleResumeTimer = async () => {
-    if (!activeSessionId) return;
-    try {
-      await resumeTimerMutation.mutateAsync({ sessionId: activeSessionId });
-      setIsRunning(true);
-      setIsPaused(false);
-    } catch (error) {
-      console.error("Failed to resume timer:", error);
-    }
-  };
-
-  const handleStopTimer = async () => {
-    if (!activeSessionId) return;
-    try {
-      await stopTimerMutation.mutateAsync({
-        sessionId: activeSessionId,
-        isBillable: "yes",
-      });
-      setIsRunning(false);
-      setIsPaused(false);
-      setElapsedSeconds(0);
-      setActiveSessionId(null);
-      setDescription("");
-      onTimerStop?.(elapsedSeconds);
-    } catch (error) {
-      console.error("Failed to stop timer:", error);
-    }
-  };
-
+  // Format time display
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -110,109 +41,157 @@ export default function TimeTracker({ onTimerStop }: TimeTrackerProps) {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
+  // Start timer
+  const handleStart = async () => {
+    try {
+      const result = await startTimerMutation.mutateAsync({
+        taskType,
+        description,
+      });
+      setActiveSessionId(result.id);
+      setIsRunning(true);
+      setIsPaused(false);
+      setElapsedSeconds(0);
+    } catch (error) {
+      console.error("Failed to start timer:", error);
+    }
+  };
+
+  // Pause timer
+  const handlePause = async () => {
+    if (activeSessionId) {
+      try {
+        await pauseTimerMutation.mutateAsync({ sessionId: activeSessionId });
+        setIsPaused(true);
+      } catch (error) {
+        console.error("Failed to pause timer:", error);
+      }
+    }
+  };
+
+  // Resume timer
+  const handleResume = async () => {
+    if (activeSessionId) {
+      try {
+        await resumeTimerMutation.mutateAsync({ sessionId: activeSessionId });
+        setIsPaused(false);
+      } catch (error) {
+        console.error("Failed to resume timer:", error);
+      }
+    }
+  };
+
+  // Stop timer
+  const handleStop = async () => {
+    if (activeSessionId) {
+      try {
+        await stopTimerMutation.mutateAsync({ sessionId: activeSessionId });
+        setIsRunning(false);
+        setIsPaused(false);
+        if (onTimerStop) {
+          onTimerStop(elapsedSeconds);
+        }
+        setElapsedSeconds(0);
+        setActiveSessionId(null);
+      } catch (error) {
+        console.error("Failed to stop timer:", error);
+      }
+    }
+  };
+
   return (
-    <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-xl p-6">
+    <Card className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700">
       <div className="space-y-4">
         {/* Timer Display */}
-        <div className="text-center">
-          <div className="text-5xl font-bold text-cyan-400 font-mono mb-2">
-            {formatTime(elapsedSeconds)}
-          </div>
-          <p className="text-slate-400 text-sm">
-            {isRunning ? (isPaused ? "Paused" : "Running") : "Stopped"}
-          </p>
+        <div className="flex items-center justify-center">
+          <Clock className="w-6 h-6 text-teal-500 mr-2" />
+          <div className="text-5xl font-mono font-bold text-white">{formatTime(elapsedSeconds)}</div>
         </div>
 
         {/* Task Type Selection */}
-        {!isRunning && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Task Type</label>
-            <select
-              value={taskType}
-              onChange={(e) => setTaskType(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white text-sm"
-            >
-              <option value="research">Research</option>
-              <option value="drafting">Drafting</option>
-              <option value="review">Review</option>
-              <option value="client_meeting">Client Meeting</option>
-              <option value="court_appearance">Court Appearance</option>
-              <option value="negotiation">Negotiation</option>
-              <option value="filing">Filing</option>
-              <option value="consultation">Consultation</option>
-              <option value="administrative">Administrative</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Task Type</label>
+          <select
+            value={taskType}
+            onChange={(e) => setTaskType(e.target.value)}
+            disabled={isRunning}
+            className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white disabled:opacity-50"
+          >
+            <option value="research">Legal Research</option>
+            <option value="drafting">Contract Drafting</option>
+            <option value="review">Document Review</option>
+            <option value="meeting">Client Meeting</option>
+            <option value="admin">Administrative</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
 
         {/* Description */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-300">Description</label>
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="What are you working on?"
             disabled={isRunning}
-            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white text-sm disabled:opacity-50"
+            placeholder="What are you working on?"
+            className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white placeholder-slate-500 disabled:opacity-50"
           />
         </div>
 
-        {/* Controls */}
-        <div className="flex gap-2 justify-center">
+        {/* Control Buttons */}
+        <div className="flex gap-2">
           {!isRunning ? (
-            <>
-              <Button
-                onClick={handleStartTimer}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-              >
-                <Play className="w-4 h-4" />
-                Start
-              </Button>
-            </>
+            <Button
+              onClick={handleStart}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Start
+            </Button>
           ) : (
             <>
+              {!isPaused ? (
+                <Button
+                  onClick={handlePause}
+                  className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white"
+                >
+                  <Pause className="w-4 h-4 mr-2" />
+                  Pause
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleResume}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Resume
+                </Button>
+              )}
               <Button
-                onClick={isPaused ? handleResumeTimer : handlePauseTimer}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white flex items-center gap-2"
+                onClick={handleStop}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
               >
-                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                {isPaused ? "Resume" : "Pause"}
-              </Button>
-              <Button
-                onClick={handleStopTimer}
-                className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2"
-              >
-                <Square className="w-4 h-4" />
+                <Square className="w-4 h-4 mr-2" />
                 Stop
               </Button>
             </>
           )}
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-700">
-          <div className="text-center">
-            <p className="text-xs text-slate-500">Hours</p>
-            <p className="text-lg font-semibold text-cyan-400">
-              {(elapsedSeconds / 3600).toFixed(2)}
-            </p>
+        {/* Status */}
+        {isRunning && (
+          <div className="text-sm text-center">
+            {isPaused ? (
+              <span className="text-yellow-400">⏸ Paused</span>
+            ) : (
+              <span className="text-green-400">▶ Running</span>
+            )}
           </div>
-          <div className="text-center">
-            <p className="text-xs text-slate-500">Minutes</p>
-            <p className="text-lg font-semibold text-cyan-400">
-              {Math.floor((elapsedSeconds % 3600) / 60)}
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-slate-500">Seconds</p>
-            <p className="text-lg font-semibold text-cyan-400">
-              {elapsedSeconds % 60}
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </Card>
   );
 }
+
+export default TimeTracker;

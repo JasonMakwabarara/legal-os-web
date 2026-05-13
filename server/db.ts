@@ -358,7 +358,7 @@ export async function createAIChatMessage(data: typeof aiChatMessages.$inferInse
   return db.insert(aiChatMessages).values(data);
 }
 
-export async function getAIChatMessages(conversationId: number) {
+export async function getAIChatMessages(conversationId: string) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(aiChatMessages)
@@ -774,4 +774,69 @@ export async function createWorkflowTemplate(data: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return { id: 1, ...data, createdAt: new Date() };
+}
+
+
+// Document Draft functions
+export async function getDocumentDrafts(firmId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(documentDrafts)
+    .where(eq(documentDrafts.firmId, firmId))
+    .orderBy(desc(documentDrafts.createdAt));
+}
+
+export async function getDocumentDraftById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(documentDrafts)
+    .where(eq(documentDrafts.id, id))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function createDocumentDraft(data: typeof documentDrafts.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(documentDrafts).values(data);
+}
+
+export async function updateDocumentDraft(id: number, data: Partial<typeof documentDrafts.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(documentDrafts).set(data).where(eq(documentDrafts.id, id));
+}
+
+export async function deleteDocumentDraft(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(documentDrafts).where(eq(documentDrafts.id, id));
+}
+
+// Notification functions
+export async function getUserNotifications(userId: number, firmId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.firmId, firmId)))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+
+export async function markNotificationAsRead(notificationId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(notifications)
+    .set({ isRead: true, readAt: new Date() })
+    .where(eq(notifications.id, notificationId));
+}
+
+// AI Chat functions
+export async function getUserAIChatConversations(userId: number, firmId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(aiChatConversations)
+    .where(and(eq(aiChatConversations.userId, userId), eq(aiChatConversations.firmId, firmId)))
+    .orderBy(desc(aiChatConversations.createdAt))
+    .limit(limit);
 }

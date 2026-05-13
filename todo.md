@@ -726,14 +726,15 @@
 - [x] Implement role-based permissions
 - [x] Add compliance dashboard
 
-## Phase 44: Testing and Deployment
-- [ ] Run comprehensive integration tests
-- [ ] Perform load testing for real-time features
-- [ ] Conduct security audit
-- [ ] Test all integrations
-- [ ] Verify compliance reporting
-- [ ] Performance optimization
-- [ ] Final deployment
+## Phase 44: Export Feature - PDF & CSV Downloads
+- [x] Create export service for PDF generation
+- [x] Create export service for CSV generation
+- [x] Add tRPC export procedures for timesheets
+- [x] Add tRPC export procedures for invoices
+- [x] Add tRPC export procedures for billable hours
+- [x] Build ExportButtons UI component
+- [x] Build ReportsExportSection UI component
+- [x] Create export service tests (10 tests passing)
 
 
 ## Phase 45: Complete E-Signature Backend Functions

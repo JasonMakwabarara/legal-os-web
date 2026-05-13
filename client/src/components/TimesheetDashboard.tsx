@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -16,7 +16,7 @@ interface TimesheetEntry {
   status: "draft" | "submitted" | "approved" | "billed";
 }
 
-export default function TimesheetDashboard() {
+export function TimesheetDashboard() {
   const [selectedWeek, setSelectedWeek] = useState(new Date());
   const [entries, setEntries] = useState<TimesheetEntry[]>([]);
 
@@ -28,12 +28,26 @@ export default function TimesheetDashboard() {
     endDate: weekEnd,
   });
 
-  const getTimesheetSummaryQuery = trpc.timeTracking.getTimesheetSummary.useQuery({
-    startDate: weekStart,
-    endDate: weekEnd,
-  });
-
   const submitTimesheetMutation = trpc.timeTracking.submitTimesheet.useMutation();
+
+  // Calculate totals
+  const totals = {
+    hours: entries.reduce((sum, e) => sum + e.hours, 0),
+    billableHours: entries.filter((e) => e.billable).reduce((sum, e) => sum + e.hours, 0),
+    amount: entries.reduce((sum, e) => sum + e.amount, 0),
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await submitTimesheetMutation.mutateAsync({
+        weekStart,
+        weekEnd,
+        entries,
+      });
+    } catch (error) {
+      console.error("Failed to submit timesheet:", error);
+    }
+  };
 
   const handlePreviousWeek = () => {
     setSelectedWeek(addDays(selectedWeek, -7));
@@ -43,186 +57,120 @@ export default function TimesheetDashboard() {
     setSelectedWeek(addDays(selectedWeek, 7));
   };
 
-  const handleSubmitTimesheet = async () => {
-    try {
-      // In a real app, we'd create a timesheet first
-      // For now, this is a placeholder
-      alert("Timesheet submitted for approval");
-    } catch (error) {
-      console.error("Failed to submit timesheet:", error);
-    }
-  };
-
-  const summary = getTimesheetSummaryQuery.data;
-  const timeEntries = getTimeEntriesQuery.data || [];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "text-green-400";
-      case "submitted":
-        return "text-yellow-400";
-      case "billed":
-        return "text-cyan-400";
-      default:
-        return "text-slate-400";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "approved":
-      case "billed":
-        return <CheckCircle className="w-4 h-4" />;
-      case "submitted":
-        return <AlertCircle className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            onClick={handlePreviousWeek}
-            variant="outline"
-            className="border-slate-600 text-slate-300"
-          >
-            ← Previous
-          </Button>
-          <div className="text-center min-w-48">
-            <p className="text-sm text-slate-400">Week of</p>
-            <p className="text-lg font-semibold text-white">
+      {/* Week Navigation */}
+      <Card className="p-4 bg-slate-900 border-slate-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-teal-500" />
+            <span className="text-white font-medium">
               {format(weekStart, "MMM d")} - {format(weekEnd, "MMM d, yyyy")}
-            </p>
+            </span>
           </div>
-          <Button
-            onClick={handleNextWeek}
-            variant="outline"
-            className="border-slate-600 text-slate-300"
-          >
-            Next →
-          </Button>
-        </div>
-        <Button
-          onClick={handleSubmitTimesheet}
-          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-        >
-          <Send className="w-4 h-4" />
-          Submit Timesheet
-        </Button>
-      </div>
-
-      {/* Summary Cards */}
-      {summary && (
-        <div className="grid grid-cols-4 gap-4">
-          <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Total Hours</p>
-            <p className="text-2xl font-bold text-cyan-400">{summary.totalHours.toFixed(1)}</p>
-          </Card>
-          <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Billable Hours</p>
-            <p className="text-2xl font-bold text-green-400">
-              {summary.billableHours.toFixed(1)}
-            </p>
-          </Card>
-          <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Billability %</p>
-            <p className="text-2xl font-bold text-yellow-400">
-              {summary.billabilityPercentage.toFixed(0)}%
-            </p>
-          </Card>
-          <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Total Amount</p>
-            <p className="text-2xl font-bold text-emerald-400">
-              ${summary.totalAmount.toFixed(2)}
-            </p>
-          </Card>
-        </div>
-      )}
-
-      {/* Time Entries Table */}
-      <Card className="bg-slate-800/30 border-slate-700/50 backdrop-blur-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-900/50 border-b border-slate-700">
-              <tr>
-                <th className="px-4 py-3 text-left text-slate-300 font-medium">Date</th>
-                <th className="px-4 py-3 text-left text-slate-300 font-medium">Task Type</th>
-                <th className="px-4 py-3 text-left text-slate-300 font-medium">Description</th>
-                <th className="px-4 py-3 text-right text-slate-300 font-medium">Hours</th>
-                <th className="px-4 py-3 text-center text-slate-300 font-medium">Billable</th>
-                <th className="px-4 py-3 text-right text-slate-300 font-medium">Amount</th>
-                <th className="px-4 py-3 text-center text-slate-300 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700">
-              {timeEntries.length > 0 ? (
-                timeEntries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-700/20 transition-colors">
-                    <td className="px-4 py-3 text-slate-300">
-                      {format(new Date(entry.startTime), "MMM d")}
-                    </td>
-                    <td className="px-4 py-3 text-slate-300 capitalize">
-                      {entry.taskType.replace(/_/g, " ")}
-                    </td>
-                    <td className="px-4 py-3 text-slate-400 truncate max-w-xs">
-                      {entry.description}
-                    </td>
-                    <td className="px-4 py-3 text-right text-slate-300 font-medium">
-                      {((entry.durationMinutes || 0) / 60).toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {entry.isBillable === "yes" ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                          Yes
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-500/20 text-slate-400">
-                          No
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right text-slate-300 font-medium">
-                      ${(entry.billableAmount || 0).toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className={`flex items-center justify-center gap-1 ${getStatusColor(entry.status)}`}>
-                        {getStatusIcon(entry.status)}
-                        <span className="capitalize text-xs">{entry.status}</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
-                    No time entries for this week
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="flex gap-2">
+            <Button onClick={handlePreviousWeek} variant="outline" size="sm">
+              Previous
+            </Button>
+            <Button onClick={handleNextWeek} variant="outline" size="sm">
+              Next
+            </Button>
+          </div>
         </div>
       </Card>
 
-      {/* Actions */}
-      <div className="flex gap-2 justify-end">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="p-4 bg-slate-900 border-slate-700">
+          <p className="text-sm text-slate-400">Total Hours</p>
+          <p className="text-2xl font-bold text-white">{totals.hours.toFixed(1)}h</p>
+        </Card>
+        <Card className="p-4 bg-teal-900 border-teal-700">
+          <p className="text-sm text-teal-300">Billable Hours</p>
+          <p className="text-2xl font-bold text-white">{totals.billableHours.toFixed(1)}h</p>
+        </Card>
+        <Card className="p-4 bg-green-900 border-green-700">
+          <p className="text-sm text-green-300">Total Amount</p>
+          <p className="text-2xl font-bold text-white">${totals.amount.toFixed(2)}</p>
+        </Card>
+      </div>
+
+      {/* Time Entries Table */}
+      <Card className="p-4 bg-slate-900 border-slate-700 overflow-x-auto">
+        <h3 className="text-lg font-semibold text-white mb-4">Time Entries</h3>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-700">
+              <th className="text-left py-2 px-2 text-slate-400">Date</th>
+              <th className="text-left py-2 px-2 text-slate-400">Task Type</th>
+              <th className="text-left py-2 px-2 text-slate-400">Description</th>
+              <th className="text-right py-2 px-2 text-slate-400">Hours</th>
+              <th className="text-center py-2 px-2 text-slate-400">Billable</th>
+              <th className="text-right py-2 px-2 text-slate-400">Amount</th>
+              <th className="text-center py-2 px-2 text-slate-400">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-4 text-slate-400">
+                  No time entries for this week
+                </td>
+              </tr>
+            ) : (
+              entries.map((entry) => (
+                <tr key={entry.id} className="border-b border-slate-800 hover:bg-slate-800/50">
+                  <td className="py-2 px-2 text-white">{format(new Date(entry.date), "MMM d")}</td>
+                  <td className="py-2 px-2 text-slate-300">{entry.taskType}</td>
+                  <td className="py-2 px-2 text-slate-400">{entry.description}</td>
+                  <td className="py-2 px-2 text-right text-white">{entry.hours.toFixed(1)}</td>
+                  <td className="py-2 px-2 text-center">
+                    {entry.billable ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-slate-500 mx-auto" />
+                    )}
+                  </td>
+                  <td className="py-2 px-2 text-right text-white">${entry.amount.toFixed(2)}</td>
+                  <td className="py-2 px-2 text-center">
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        entry.status === "approved"
+                          ? "bg-green-900 text-green-300"
+                          : entry.status === "submitted"
+                            ? "bg-blue-900 text-blue-300"
+                            : entry.status === "billed"
+                              ? "bg-purple-900 text-purple-300"
+                              : "bg-slate-700 text-slate-300"
+                      }`}
+                    >
+                      {entry.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </Card>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
         <Button
-          variant="outline"
-          className="border-slate-600 text-slate-300 flex items-center gap-2"
+          onClick={handleSubmit}
+          disabled={entries.length === 0 || submitTimesheetMutation.isPending}
+          className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
         >
-          <Download className="w-4 h-4" />
-          Export as PDF
+          <Send className="w-4 h-4 mr-2" />
+          Submit Timesheet
         </Button>
-        <Button className="bg-cyan-600 hover:bg-cyan-700 text-white flex items-center gap-2">
-          <Calendar className="w-4 h-4" />
-          View Analytics
+        <Button variant="outline" className="flex-1">
+          <Download className="w-4 h-4 mr-2" />
+          Export
         </Button>
       </div>
     </div>
   );
 }
+
+export default TimesheetDashboard;
