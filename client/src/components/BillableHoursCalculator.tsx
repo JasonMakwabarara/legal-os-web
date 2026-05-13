@@ -39,7 +39,7 @@ export function BillableHoursCalculator({ entries = [], onUpdate }: CalculatorPr
     const billableMinutes = filtered.reduce((sum, e) => sum + (e.billableMinutes || 0), 0);
     const totalAmount = filtered.reduce((sum, e) => sum + (e.billableAmount || 0), 0);
 
-    const rate = getBillableRateQuery.data?.hourlyRate || hourlyRate;
+    const rate = (getBillableRateQuery.data?.hourlyRate || hourlyRate) as number;
     const calculatedAmount = (billableMinutes / 60) * rate;
 
     return {
