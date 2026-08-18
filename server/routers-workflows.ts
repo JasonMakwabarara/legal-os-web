@@ -11,13 +11,13 @@ import * as db from "./db";
 // Workflow trigger types
 const WorkflowTriggerInput = z.object({
   type: z.enum(['contract_uploaded', 'risk_alert', 'deadline_approaching', 'manual_trigger', 'scheduled']),
-  condition: z.record(z.any()).optional(),
+  condition: z.record(z.string(), z.any()).optional(),
 });
 
 // Workflow action types
 const WorkflowActionInput = z.object({
   type: z.enum(['send_notification', 'create_task', 'update_status', 'send_email', 'call_webhook', 'approval_required']),
-  config: z.record(z.any()),
+  config: z.record(z.string(), z.any()),
 });
 
 // Workflow definition
@@ -34,6 +34,35 @@ const WorkflowDefinitionInput = z.object({
   enabled: z.boolean().default(true),
 });
 
+/**
+ * The `workflows` table models AI processing runs, so the no-code builder's
+ * definition (name, triggers, actions, approval chain, enabled flag) is stored
+ * in the row's `result` JSON column under a `definition` key.
+ */
+type WorkflowDefinitionPatch = Record<string, unknown>;
+
+function readDefinition(workflow: { result: unknown }): WorkflowDefinitionPatch {
+  const result = workflow.result;
+  if (result && typeof result === "object") {
+    const definition = (result as { definition?: unknown }).definition;
+    if (definition && typeof definition === "object") {
+      return definition as WorkflowDefinitionPatch;
+    }
+  }
+  return {};
+}
+
+function withDefinition(
+  workflow: { result: unknown },
+  patch: WorkflowDefinitionPatch
+): Record<string, unknown> {
+  const base =
+    workflow.result && typeof workflow.result === "object"
+      ? (workflow.result as Record<string, unknown>)
+      : {};
+  return { ...base, definition: { ...readDefinition(workflow), ...patch } };
+}
+
 export const workflowsRouter = router({
   // Create a new workflow
   create: protectedProcedure
@@ -46,14 +75,20 @@ export const workflowsRouter = router({
       try {
         const workflow = await db.createWorkflow({
           firmId: ctx.user.firmId,
-          name: input.name,
-          description: input.description,
-          triggers: input.triggers as any,
-          actions: input.actions as any,
-          approvalChain: input.approvalChain as any,
-          status: 'draft',
-          createdBy: ctx.user.id,
-          enabled: input.enabled,
+          type: 'contract_review',
+          status: 'pending',
+          progress: 0,
+          result: {
+            definition: {
+              name: input.name,
+              description: input.description,
+              triggers: input.triggers,
+              actions: input.actions,
+              approvalChain: input.approvalChain,
+              enabled: input.enabled,
+              createdBy: ctx.user.id,
+            },
+          },
         });
 
         return {
@@ -155,7 +190,7 @@ export const workflowsRouter = router({
         }
 
         await db.updateWorkflow(input.workflowId, {
-          status: (input.data.status as any) || 'pending',
+          result: withDefinition(workflow, input.data),
         });
 
         return {
@@ -184,8 +219,10 @@ export const workflowsRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Workflow not found' });
         }
 
-        // Soft delete by setting enabled to false
-        await db.updateWorkflow(input.workflowId, { enabled: false });
+        // Soft delete by disabling the stored workflow definition
+        await db.updateWorkflow(input.workflowId, {
+          result: withDefinition(workflow, { enabled: false }),
+        });
 
         return {
           success: true,
@@ -203,7 +240,7 @@ export const workflowsRouter = router({
   execute: protectedProcedure
     .input(z.object({
       workflowId: z.number(),
-      context: z.record(z.any()).optional(),
+      context: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user.firmId) {
@@ -339,7 +376,7 @@ export const workflowsRouter = router({
     .input(z.object({
       templateId: z.string(),
       name: z.string().min(1),
-      customization: z.record(z.any()).optional(),
+      customization: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user.firmId) {
@@ -357,7 +394,7 @@ export const workflowsRouter = router({
 
         return {
           success: true,
-          workflowId: (workflow as any)[0]?.id || 1,
+          workflowId: workflow.id,
           message: 'Workflow created from template successfully',
         };
       } catch (error) {

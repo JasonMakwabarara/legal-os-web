@@ -28,6 +28,15 @@ export default function ClientManagement() {
     }
   }, [isAuthenticated, authLoading, setLocation]);
 
+  // Fetch clients from backend
+  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = trpc.clients.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: cases = [] } = trpc.cases.list.useQuery(undefined, { enabled: isAuthenticated });
+
+  const activeCaseCount = (clientId: number) =>
+    cases.filter((c) => c.clientId === clientId && c.status === 'active').length;
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -39,11 +48,6 @@ export default function ClientManagement() {
   if (!isAuthenticated) {
     return null;
   }
-
-  // Fetch clients from backend
-  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = trpc.clients.list.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
 
   if (clientsLoading) {
     return (
@@ -193,7 +197,7 @@ export default function ClientManagement() {
                     {/* Case Summary */}
                     <div className="pt-2 border-t border-border">
                       <p className="text-xs text-muted-foreground mb-2">Active Cases</p>
-                      <p className="text-lg font-semibold text-foreground">0</p>
+                      <p className="text-lg font-semibold text-foreground">{activeCaseCount(client.id)}</p>
                     </div>
                   </div>
                 </CardContent>

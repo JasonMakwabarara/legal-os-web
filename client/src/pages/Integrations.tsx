@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, Settings } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
 interface Integration {
   id: string;
@@ -16,49 +16,33 @@ interface Integration {
 }
 
 export function Integrations() {
-  const [integrations, setIntegrations] = useState<Integration[]>([
+  const [integrations] = useState<Integration[]>([
     {
-      id: "slack",
-      name: "Slack",
-      description: "Send notifications and updates to Slack channels",
-      icon: "💬",
-      status: "connected",
-      lastSync: new Date(Date.now() - 5 * 60000),
-    },
-    {
-      id: "salesforce",
-      name: "Salesforce",
-      description: "Sync opportunities, accounts, and contacts",
-      icon: "☁️",
+      id: "clio",
+      name: "Clio",
+      description: "Practice management — planned when the hosted API is live",
+      icon: "Clio",
       status: "disconnected",
     },
     {
-      id: "teams",
-      name: "Microsoft Teams",
-      description: "Collaborate and share updates in Teams",
-      icon: "👥",
-      status: "connected",
-      lastSync: new Date(Date.now() - 30 * 60000),
-    },
-    {
-      id: "outlook",
-      name: "Outlook",
-      description: "Sync calendar and email with Outlook",
-      icon: "📧",
-      status: "error",
+      id: "word",
+      name: "Microsoft Word",
+      description: "Track-changes add-in — the near-term Spellbook competitor",
+      icon: "Word",
+      status: "disconnected",
     },
     {
       id: "docusign",
       name: "DocuSign",
-      description: "E-signature integration for document signing",
-      icon: "✍️",
+      description: "E-signature — not connected in this demo",
+      icon: "Sign",
       status: "disconnected",
     },
     {
-      id: "clio",
-      name: "Clio",
-      description: "Practice management system integration",
-      icon: "⚖️",
+      id: "slack",
+      name: "Slack",
+      description: "Risk alerts to channels — coming with the server",
+      icon: "Slack",
       status: "disconnected",
     },
   ]);
@@ -69,12 +53,6 @@ export function Integrations() {
   const handleConnect = (integration: Integration) => {
     setSelectedIntegration(integration);
     setShowConfigModal(true);
-  };
-
-  const handleDisconnect = (id: string) => {
-    setIntegrations(
-      integrations.map((i) => (i.id === id ? { ...i, status: "disconnected" } : i))
-    );
   };
 
   const getStatusColor = (status: string) => {
@@ -103,7 +81,7 @@ export function Integrations() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold">Integrations</h1>
-        <p className="text-slate-400">Connect your favorite tools and services</p>
+        <p className="text-slate-400">Not connected in this Netlify demo. They ship with the hosted SpiderNet API.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -129,35 +107,14 @@ export function Integrations() {
             )}
 
             <div className="flex gap-2">
-              {integration.status === "connected" ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 border-slate-600"
-                    onClick={() => handleConnect(integration)}
-                  >
-                    <Settings className="w-4 h-4 mr-1" />
-                    Settings
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 border-red-600 text-red-400 hover:bg-red-900"
-                    onClick={() => handleDisconnect(integration.id)}
-                  >
-                    Disconnect
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  size="sm"
-                  className="w-full bg-teal-600 hover:bg-teal-700"
-                  onClick={() => handleConnect(integration)}
-                >
-                  Connect
-                </Button>
-              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-slate-600"
+                onClick={() => handleConnect(integration)}
+              >
+                Coming with hosted server
+              </Button>
             </div>
           </Card>
         ))}

@@ -40,7 +40,7 @@ interface ComparisonResult {
 
 const mockDocuments: DocumentClause[] = [
   {
-    documentName: 'Service Agreement - Acme Corp',
+    documentName: 'Service Agreement - TechCorp Inc',
     clauses: [
       {
         id: '1a',
@@ -69,7 +69,7 @@ const mockDocuments: DocumentClause[] = [
     ],
   },
   {
-    documentName: 'Service Agreement - TechStart Inc',
+    documentName: 'Service Agreement - DataFlow Systems',
     clauses: [
       {
         id: '1b',
@@ -104,12 +104,12 @@ const mockComparisons: ComparisonResult[] = [
     clauseTitle: 'Limitation of Liability',
     similarity: 75,
     differences: [
-      'Acme Corp includes 12-month lookback period; TechStart has no cap',
-      'TechStart covers all damages; Acme excludes indirect damages',
-      'Acme includes carve-outs; TechStart has no exceptions',
+      'TechCorp Inc includes 12-month lookback period; DataFlow has no cap',
+      'DataFlow covers all damages; TechCorp excludes indirect damages',
+      'TechCorp includes carve-outs; DataFlow has no exceptions',
     ],
     riskAnalysis:
-      'TechStart agreement exposes your company to unlimited liability. The absence of damage caps and exclusions significantly increases financial risk.',
+      'DataFlow agreement exposes your company to unlimited liability. The absence of damage caps and exclusions significantly increases financial risk.',
     recommendation:
       'Negotiate liability cap of $5M and restore exclusion for indirect damages. Consider adding carve-outs for gross negligence.',
     riskDelta: 45,
@@ -118,12 +118,12 @@ const mockComparisons: ComparisonResult[] = [
     clauseTitle: 'Confidentiality',
     similarity: 60,
     differences: [
-      'TechStart requires indefinite protection vs. Acme\'s 3-year term',
-      'TechStart treats all info as confidential by default',
-      'Acme includes public domain exception; TechStart does not',
+      'DataFlow requires indefinite protection vs. TechCorp\'s 3-year term',
+      'DataFlow treats all info as confidential by default',
+      'TechCorp includes public domain exception; DataFlow does not',
     ],
     riskAnalysis:
-      'TechStart\'s indefinite confidentiality obligation creates long-term compliance burden and limits your ability to use knowledge gained.',
+      'DataFlow\'s indefinite confidentiality obligation creates long-term compliance burden and limits your ability to use knowledge gained.',
     recommendation:
       'Propose 5-year term with explicit exceptions for publicly available information and independently developed knowledge.',
     riskDelta: 35,

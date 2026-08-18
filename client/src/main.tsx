@@ -1,3 +1,5 @@
+import { isDemoMode } from "@/lib/demo-mode";
+import { demoTrpcLink } from "@/lib/demo-trpc-link";
 import { trpc } from "@/lib/trpc";
 import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -38,18 +40,23 @@ queryClient.getMutationCache().subscribe(event => {
 });
 
 const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: "/api/trpc",
-      transformer: superjson,
-      fetch(input, init) {
-        return globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
-      },
-    }),
-  ],
+  links: isDemoMode()
+    ? [demoTrpcLink]
+    : [
+        httpBatchLink({
+          url: import.meta.env.VITE_API_URL
+            ? `${String(import.meta.env.VITE_API_URL).replace(/\/$/, "")}/api/trpc`
+            : "/api/trpc",
+          // tRPC's shipped .d.mts types drop the transformer flag from AppRouter (see scripts/fix-trpc-types.mjs)
+          transformer: superjson as never,
+          fetch(input, init) {
+            return globalThis.fetch(input, {
+              ...(init ?? {}),
+              credentials: "include",
+            });
+          },
+        }),
+      ],
 });
 
 createRoot(document.getElementById("root")!).render(

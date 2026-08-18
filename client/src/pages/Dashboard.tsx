@@ -29,11 +29,12 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const { loading: authLoading } = useAuth();
+  const utils = trpc.useUtils();
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      setLocation('/');
+      setLocation('/login');
     }
   }, [isAuthenticated, authLoading, setLocation]);
 
@@ -81,8 +82,8 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Legal OS Cockpit</h1>
-              <p className="text-sm text-muted-foreground">AI-Powered Legal Operations</p>
+              <h1 className="text-3xl font-bold text-foreground">Contract cockpit</h1>
+              <p className="text-sm text-muted-foreground">Upload, review risks and redlines, attach to a matter, then ask the assistant — priced per firm.</p>
             </div>
             <Button 
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
@@ -93,16 +94,15 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          {/* Command Bar */}
           <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => setLocation('/contract/1')}>
               Analyze Contract
             </Button>
-            <Button variant="outline" size="sm" className="text-xs">
-              Explore Due Diligence
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => setLocation('/cases')}>
+              Open matters
             </Button>
-            <Button variant="outline" size="sm" className="text-xs">
-              Prepare Case Strategy
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => setLocation('/ai-chat')}>
+              Ask grounded assistant
             </Button>
           </div>
         </div>
@@ -176,7 +176,11 @@ export default function Dashboard() {
                   ) : (
                     <div className="space-y-3">
                       {contracts?.slice(0, 5).map((contract) => (
-                        <div key={contract.id} className="flex items-start justify-between p-3 rounded-lg bg-secondary/50 border border-border hover:bg-secondary/70 transition-colors cursor-pointer">
+                        <div
+                          key={contract.id}
+                          className="flex items-start justify-between p-3 rounded-lg bg-secondary/50 border border-border hover:bg-secondary/70 transition-colors cursor-pointer"
+                          onClick={() => setLocation(`/contract/${contract.id}`)}
+                        >
                           <div className="flex-1">
                             <p className="font-semibold text-sm text-foreground">{contract.name}</p>
                             <p className="text-xs text-muted-foreground">{contract.fileName || 'Unknown file'}</p>
@@ -277,8 +281,7 @@ export default function Dashboard() {
         open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
         onSuccess={() => {
-          // Refresh contracts list
-          // TODO: Add invalidation
+          void utils.contracts.list.invalidate();
         }}
         documentType="contract"
       />

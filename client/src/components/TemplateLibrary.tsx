@@ -51,7 +51,8 @@ export default function TemplateLibrary() {
   });
 
   // Fetch templates
-  const { data: templates = [], isLoading, refetch } = trpc.templates.list.useQuery();
+  const { data, isLoading, refetch } = trpc.templates.list.useQuery();
+  const templates = (data ?? []) as unknown as Template[];
 
   // Create template mutation
   const createMutation = trpc.templates.create.useMutation({

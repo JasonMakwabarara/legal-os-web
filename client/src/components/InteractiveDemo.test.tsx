@@ -34,7 +34,7 @@ describe('InteractiveDemo Component', () => {
     expect(screen.getByText('Upload Contract')).toBeTruthy();
     expect(screen.getByText('AI Analysis')).toBeTruthy();
     expect(screen.getByText('Risk Detection')).toBeTruthy();
-    expect(screen.getByText('Real-Time Collaboration')).toBeTruthy();
+    expect(screen.getByText('Attach to Matter & Client')).toBeTruthy();
     expect(screen.getByText('Actionable Insights')).toBeTruthy();
   });
 
@@ -91,7 +91,7 @@ describe('InteractiveDemo Component', () => {
       screen.getByText('Identifies high-risk clauses and potential legal exposure')
     ).toBeTruthy();
     expect(
-      screen.getByText('Invite team members to review and edit simultaneously')
+      screen.getByText('Link the review to the right client and matter — practice management built in')
     ).toBeTruthy();
     expect(
       screen.getByText('Get AI-powered recommendations and suggested revisions')
@@ -126,7 +126,7 @@ describe('InteractiveDemo Component', () => {
       'Drag and drop your contract document for instant analysis',
       'Advanced LLM analyzes contract terms, clauses, and risks in real-time',
       'Identifies high-risk clauses and potential legal exposure',
-      'Invite team members to review and edit simultaneously',
+      'Link the review to the right client and matter — practice management built in',
       'Get AI-powered recommendations and suggested revisions',
     ];
     

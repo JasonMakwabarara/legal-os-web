@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Download, Filter } from "lucide-react";
+import { Download } from "lucide-react";
 
 export function Reports() {
   const [reportType, setReportType] = useState("billability");
@@ -33,10 +33,9 @@ export function Reports() {
   ];
 
   const teamPerformanceData = [
-    { name: "Alice Johnson", billability: 92, revenue: 18400 },
-    { name: "Bob Smith", billability: 85, revenue: 16200 },
-    { name: "Carol Davis", billability: 88, revenue: 17600 },
-    { name: "David Wilson", billability: 79, revenue: 15800 },
+    { name: "Alex Rivera", billability: 92, revenue: 18400 },
+    { name: "Priya Hale", billability: 88, revenue: 17600 },
+    { name: "Jonah West", billability: 85, revenue: 16200 },
   ];
 
   return (
@@ -44,9 +43,9 @@ export function Reports() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Reports & Analytics</h1>
-          <p className="text-slate-400">Track performance and financial metrics</p>
+          <p className="text-slate-400">Track performance and financial metrics — sample analytics for the Rivera & Hale demo firm</p>
         </div>
-        <Button className="bg-teal-600 hover:bg-teal-700">
+        <Button className="bg-teal-600 hover:bg-teal-700 opacity-60 cursor-not-allowed" title="Export ships with the hosted API" disabled>
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </Button>
@@ -62,7 +61,6 @@ export function Reports() {
             <SelectItem value="billability">Billability</SelectItem>
             <SelectItem value="revenue">Revenue</SelectItem>
             <SelectItem value="team">Team Performance</SelectItem>
-            <SelectItem value="compliance">Compliance</SelectItem>
           </SelectContent>
         </Select>
 
@@ -78,10 +76,6 @@ export function Reports() {
           </SelectContent>
         </Select>
 
-        <Button variant="outline" className="border-slate-600">
-          <Filter className="w-4 h-4 mr-2" />
-          More Filters
-        </Button>
       </div>
 
       {/* Key Metrics */}
@@ -177,27 +171,6 @@ export function Reports() {
         </Card>
       </div>
 
-      {/* Compliance Report */}
-      <Card className="border-slate-700 bg-slate-900 p-4">
-        <h3 className="font-semibold mb-4">Compliance Status</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-3 bg-slate-800 rounded">
-            <p className="text-sm text-slate-400 mb-2">SOC 2 Compliance</p>
-            <p className="text-lg font-semibold text-green-400">✓ Compliant</p>
-            <p className="text-xs text-slate-500 mt-1">Last audit: 2 weeks ago</p>
-          </div>
-          <div className="p-3 bg-slate-800 rounded">
-            <p className="text-sm text-slate-400 mb-2">GDPR Compliance</p>
-            <p className="text-lg font-semibold text-green-400">✓ Compliant</p>
-            <p className="text-xs text-slate-500 mt-1">Last audit: 1 week ago</p>
-          </div>
-          <div className="p-3 bg-slate-800 rounded">
-            <p className="text-sm text-slate-400 mb-2">Data Retention</p>
-            <p className="text-lg font-semibold text-yellow-400">⚠ Review Needed</p>
-            <p className="text-xs text-slate-500 mt-1">Action required by: 2026-05-25</p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,18 +26,6 @@ export default function FirmSetup() {
   });
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect to login if not authenticated
-  if (!authLoading && !isAuthenticated) {
-    setLocation("/");
-    return null;
-  }
-
-  // Redirect to dashboard if user already has a firm
-  if (user?.firmId) {
-    setLocation("/dashboard");
-    return null;
-  }
-
   // Create firm mutation
   const createFirmMutation = trpc.firms.create.useMutation({
     onSuccess: () => {
@@ -48,6 +36,15 @@ export default function FirmSetup() {
       setError(error?.message || "Failed to create firm");
     },
   });
+
+  // Redirect to login if not authenticated; to dashboard if a firm already exists
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      setLocation("/");
+    } else if (user?.firmId) {
+      setLocation("/dashboard");
+    }
+  }, [authLoading, isAuthenticated, user?.firmId, setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +64,7 @@ export default function FirmSetup() {
     });
   };
 
-  if (authLoading) {
+  if (authLoading || !isAuthenticated || user?.firmId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-accent" />

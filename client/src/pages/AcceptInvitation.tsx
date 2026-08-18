@@ -12,13 +12,13 @@ import { useAuth } from '@/_core/hooks/useAuth';
  * Allows users to accept an invitation and join a firm
  */
 export default function AcceptInvitation() {
-  const [, params] = useRoute('/accept-invitation/:code');
+  const [, params] = useRoute('/accept-invitation/:code') as [boolean, { code?: string } | null];
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const code = params?.code as string | undefined;
+  const code = params?.code;
 
   // Get invitation details
   const { data: invitation, isLoading: invitationLoading, error: invitationError } = trpc.invitations.getByCode.useQuery(

@@ -4,7 +4,11 @@
  */
 
 import { WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'http';
+import { IncomingMessage, Server } from 'http';
+import { parse as parseCookieHeader } from 'cookie';
+import { COOKIE_NAME } from '@shared/const';
+import { sdk } from '../_core/sdk';
+import { getUserByOpenId } from '../db';
 
 interface WebSocketMessage {
   type: 'notification' | 'collaboration' | 'contract_update' | 'case_update' | 'ping';
@@ -24,16 +28,42 @@ export class RealtimeService {
     this.startHeartbeat();
   }
 
-  private setupWebSocketHandlers() {
-    this.wss.on('connection', (ws: WebSocket, req) => {
-      const url = new URL(req.url || '', `http://${req.headers.host}`);
-      const userId = parseInt(url.searchParams.get('userId') || '0');
-      const firmId = parseInt(url.searchParams.get('firmId') || '0');
+  /**
+   * Derive the connecting user's identity from the verified session JWT cookie
+   * (app_session_id) on the upgrade request. Client-supplied identity (query
+   * params, message fields) is never trusted.
+   */
+  private async resolveConnectionUser(
+    req: IncomingMessage
+  ): Promise<{ userId: number; firmId: number } | null> {
+    const cookieHeader = req.headers.cookie;
+    if (!cookieHeader) return null;
 
-      if (!userId || !firmId) {
-        ws.close(1008, 'Missing userId or firmId');
+    const cookies = parseCookieHeader(cookieHeader);
+    const session = await sdk.verifySession(cookies[COOKIE_NAME]);
+    if (!session) return null;
+
+    const user = await getUserByOpenId(session.openId);
+    if (!user || !user.firmId) return null;
+
+    return { userId: user.id, firmId: user.firmId };
+  }
+
+  private setupWebSocketHandlers() {
+    this.wss.on('connection', async (ws: WebSocket, req) => {
+      let identity: { userId: number; firmId: number } | null = null;
+      try {
+        identity = await this.resolveConnectionUser(req);
+      } catch (error) {
+        console.error('[RealtimeService] Authentication failed:', error);
+      }
+
+      if (!identity) {
+        ws.close(1008, 'Unauthorized');
         return;
       }
+
+      const { userId, firmId } = identity;
 
       // Register connection
       if (!this.userConnections.has(userId)) {

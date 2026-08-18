@@ -8,23 +8,19 @@ import {
   Send,
   Loader,
   AlertTriangle,
-  CheckCircle2,
   FileText,
   Brain,
   Zap,
   Copy,
   Download,
-  X,
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
-import { Streamdown } from 'streamdown';
 
 interface Message {
   id: string;
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  action?: 'analyze' | 'ask' | 'summarize' | 'risks' | 'modify';
 }
 
 interface ChatMode {
@@ -67,21 +63,94 @@ const chatModes: ChatMode[] = [
   },
 ];
 
-export default function AILegalAssistant() {
+const modeQuestionPrefix: Record<ChatMode['id'], (input: string) => string> = {
+  analyze: (input) => `Analyze this clause: ${input}`,
+  ask: (input) => input,
+  summarize: (input) => input || 'Summarize the risks in this contract',
+  risks: (input) => input || 'What are the main risks in this contract?',
+  modify: (input) => input || 'Suggest changes to reduce risk in this contract',
+};
+
+/** Renders the assistant's simple markdown (bold + bullet lists) without a heavyweight renderer. */
+function SimpleMarkdown({ content }: { content: string }) {
+  const renderInline = (text: string) =>
+    text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+      part.startsWith('**') && part.endsWith('**') ? (
+        <strong key={i}>{part.slice(2, -2)}</strong>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
+      ),
+    );
+
+  return (
+    <div className="text-sm space-y-2">
+      {content.split(/\n{2,}/).map((block, bi) => {
+        const lines = block.split('\n');
+        const isList = lines.every((l) => l.trim().startsWith('- ') || l.trim() === '');
+        if (isList && lines.some((l) => l.trim().startsWith('- '))) {
+          return (
+            <ul key={bi} className="list-disc pl-5 space-y-1">
+              {lines.filter((l) => l.trim().startsWith('- ')).map((l, li) => (
+                <li key={li}>{renderInline(l.trim().slice(2))}</li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={bi} className="whitespace-pre-wrap">
+            {renderInline(block)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+interface AILegalAssistantProps {
+  conversationId?: string | null;
+  onConversationChange?: (id: string) => void;
+}
+
+export default function AILegalAssistant({ conversationId = null, onConversationChange }: AILegalAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentMode, setCurrentMode] = useState<ChatMode['id']>('ask');
   const [contractText, setContractText] = useState('');
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showContractInput, setShowContractInput] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const utils = trpc.useUtils();
+  const { data: contracts } = trpc.contracts.list.useQuery();
+  const { data: history } = trpc.aiChat.getMessages.useQuery(
+    { conversationId: conversationId ?? '' },
+    { enabled: !!conversationId },
+  );
 
-  // tRPC mutations
-  const analyzeClauseMutation = trpc.aiChat.analyzeClause.useMutation();
-  const askAboutContractMutation = trpc.aiChat.askAboutContract.useMutation();
-  const summarizeContractMutation = trpc.aiChat.summarizeContract.useMutation();
-  const identifyRisksMutation = trpc.aiChat.identifyRisks.useMutation();
-  const suggestModificationsMutation = trpc.aiChat.suggestModifications.useMutation();
+  useEffect(() => {
+    if (contractText || !contracts?.length) return;
+    const first = contracts[0] as { originalText?: string; description?: string | null; name: string };
+    setContractText(first.originalText || first.description || first.name);
+  }, [contractText, contracts]);
+
+  // Load persisted history when a conversation is selected; clear on New Chat
+  useEffect(() => {
+    if (!conversationId) {
+      setMessages([]);
+      return;
+    }
+    if (history) {
+      setMessages(
+        history.map((m: any, idx: number) => ({
+          id: String(m.id ?? idx),
+          type: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content,
+          timestamp: m.createdAt ? new Date(m.createdAt) : new Date(),
+        })),
+      );
+    }
+  }, [conversationId, history]);
+
+  const startConversationMutation = trpc.aiChat.startConversation.useMutation();
+  const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -93,15 +162,14 @@ export default function AILegalAssistant() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInput.trim() || !contractText.trim() || isLoading) return;
+    const question = modeQuestionPrefix[currentMode](userInput.trim());
+    if (!question || !contractText.trim() || isLoading) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: userInput,
+      content: question,
       timestamp: new Date(),
-      action: currentMode,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -109,80 +177,41 @@ export default function AILegalAssistant() {
     setIsLoading(true);
 
     try {
-      let response;
-
-      switch (currentMode) {
-        case 'analyze':
-          response = await analyzeClauseMutation.mutateAsync({
-            clauseText: userInput,
-            clauseType: 'General',
-          });
-          break;
-
-        case 'ask':
-          response = await askAboutContractMutation.mutateAsync({
-            contractText,
-            question: userInput,
-          });
-          break;
-
-        case 'summarize':
-          response = await summarizeContractMutation.mutateAsync({
-            contractText,
-            detailLevel: 'standard',
-          });
-          break;
-
-        case 'risks':
-          response = await identifyRisksMutation.mutateAsync({
-            contractText,
-          });
-          break;
-
-        case 'modify':
-          response = await suggestModificationsMutation.mutateAsync({
-            contractText,
-          });
-          break;
-
-        default:
-          response = null;
+      let activeConversationId = conversationId;
+      if (!activeConversationId) {
+        const conversation = await startConversationMutation.mutateAsync({
+          title: question.slice(0, 60),
+        });
+        activeConversationId = (conversation as unknown as { id: string }).id;
+        onConversationChange?.(activeConversationId);
       }
 
-      if (response?.success) {
-        let content = 'Response generated';
-        const resp = response as any;
-        if (resp.analysis) {
-          content = typeof resp.analysis === 'string' ? resp.analysis : JSON.stringify(resp.analysis);
-        } else if (resp.answer) {
-          content = typeof resp.answer === 'string' ? resp.answer : JSON.stringify(resp.answer);
-        } else if (resp.summary) {
-          content = typeof resp.summary === 'string' ? resp.summary : JSON.stringify(resp.summary);
-        } else if (resp.risks) {
-          content = typeof resp.risks === 'string' ? resp.risks : JSON.stringify(resp.risks);
-        } else if (resp.suggestions) {
-          content = typeof resp.suggestions === 'string' ? resp.suggestions : JSON.stringify(resp.suggestions);
-        }
+      const response = await sendMessageMutation.mutateAsync({
+        conversationId: activeConversationId,
+        content: question,
+      });
 
-        const assistantMessage: Message = {
+      setMessages((prev) => [
+        ...prev,
+        {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
-          content,
+          content: response.response,
           timestamp: new Date(),
-          action: currentMode,
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
-      }
+        },
+      ]);
+      await utils.aiChat.getConversations.invalidate();
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'Sorry, I encountered an error processing your request. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: 'Sorry, I encountered an error processing your request. Please try again.',
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -265,13 +294,13 @@ export default function AILegalAssistant() {
                   <div>
                     <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
-                      Paste a contract and select an analysis mode to get started
+                      Ask about liability, indemnity, termination, or risks — or paste your own contract on the left
                     </p>
                   </div>
                 </div>
               )}
 
-              {messages.map((message, index) => (
+              {messages.map((message) => (
                 <motion.div
                   key={message.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -287,9 +316,7 @@ export default function AILegalAssistant() {
                     }`}
                   >
                     {message.type === 'assistant' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <Streamdown>{message.content}</Streamdown>
-                      </div>
+                      <SimpleMarkdown content={message.content} />
                     ) : (
                       <p className="text-sm">{message.content}</p>
                     )}
@@ -300,6 +327,7 @@ export default function AILegalAssistant() {
                           onClick={() => copyToClipboard(message.content)}
                           className="text-xs opacity-75 hover:opacity-100 transition-opacity"
                           title="Copy"
+                          aria-label="Copy response"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
@@ -307,6 +335,7 @@ export default function AILegalAssistant() {
                           onClick={() => downloadAsText(message.content)}
                           className="text-xs opacity-75 hover:opacity-100 transition-opacity"
                           title="Download"
+                          aria-label="Download response"
                         >
                           <Download className="w-4 h-4" />
                         </button>
@@ -347,7 +376,11 @@ export default function AILegalAssistant() {
             />
             <Button
               type="submit"
-              disabled={isLoading || !contractText.trim() || !userInput.trim()}
+              disabled={
+                isLoading ||
+                !contractText.trim() ||
+                (!userInput.trim() && (currentMode === 'analyze' || currentMode === 'ask'))
+              }
               className="gap-2"
             >
               <Send className="w-4 h-4" />

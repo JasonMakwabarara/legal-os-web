@@ -12,7 +12,9 @@ export function TimeTracker({ onTimerStop }: TimeTrackerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [taskType, setTaskType] = useState("research");
+  const [taskType, setTaskType] = useState<
+    "research" | "review" | "drafting" | "client_meeting" | "court_appearance" | "negotiation" | "filing" | "consultation" | "administrative" | "other"
+  >("research");
   const [description, setDescription] = useState("");
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
 
@@ -113,7 +115,7 @@ export function TimeTracker({ onTimerStop }: TimeTrackerProps) {
           <label className="block text-sm font-medium text-slate-300 mb-2">Task Type</label>
           <select
             value={taskType}
-            onChange={(e) => setTaskType(e.target.value)}
+            onChange={(e) => setTaskType(e.target.value as typeof taskType)}
             disabled={isRunning}
             className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded text-white disabled:opacity-50"
           >

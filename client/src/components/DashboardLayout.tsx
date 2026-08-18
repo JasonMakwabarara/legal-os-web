@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Search, FileText, GitCompare, Library } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, FileText, Library, Briefcase, MessageSquare, Clock, Plug, BarChart3 } from "lucide-react";
+import { DemoBanner } from "./DemoBanner";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -30,11 +31,15 @@ import { HelpMenu } from "./HelpMenu";
 import { GlobalSearch } from "./GlobalSearch";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Search, label: "Advanced Search", path: "/search" },
-  { icon: FileText, label: "OCR Processing", path: "/ocr" },
-  { icon: GitCompare, label: "Clause Comparison", path: "/comparison" },
-  { icon: Library, label: "Template Library", path: "/templates" },
+  { icon: LayoutDashboard, label: "Cockpit", path: "/dashboard" },
+  { icon: FileText, label: "Documents", path: "/documents" },
+  { icon: Briefcase, label: "Matters", path: "/cases" },
+  { icon: Users, label: "Clients", path: "/clients" },
+  { icon: MessageSquare, label: "Assistant", path: "/ai-chat" },
+  { icon: Library, label: "Playbook", path: "/templates" },
+  { icon: Clock, label: "Time", path: "/timesheets" },
+  { icon: BarChart3, label: "Reports", path: "/reports" },
+  { icon: Plug, label: "Integrations", path: "/integrations" },
   { icon: Users, label: "Team", path: "/team" },
 ];
 
@@ -192,9 +197,11 @@ function DashboardLayoutContent({
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
+                      id={`nav-${item.label.toLowerCase()}`}
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
+                      aria-label={item.label}
                       className={`h-10 transition-all font-normal`}
                     >
                       <item.icon
@@ -252,33 +259,23 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
-        {isMobile && (
+        <DemoBanner />
+        {isMobile ? (
           <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
-                  </span>
-                </div>
-              </div>
+              <span className="tracking-tight text-foreground">
+                {activeMenuItem?.label ?? "Menu"}
+              </span>
             </div>
-        {!isMobile && (
+            <HelpMenu />
+          </div>
+        ) : (
           <div className="flex border-b h-14 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex-1 global-search">
               <GlobalSearch />
             </div>
-            <div className="flex items-center gap-2">
-              <HelpMenu />
-            </div>
-          </div>
-        )}
-        {isMobile && (
-          <div className="flex items-center gap-2">
             <HelpMenu />
-          </div>
-        )}
           </div>
         )}
         <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-auto">{children}</main>

@@ -33,7 +33,7 @@ export default function DocumentUploadWidget() {
     onSuccess: (data: any) => {
       setDocuments((prev) =>
         prev.map((doc) =>
-          doc.id === data.fileKey
+          doc.id === data.tempId
             ? { ...doc, status: 'processing', progress: 50 }
             : doc
         )

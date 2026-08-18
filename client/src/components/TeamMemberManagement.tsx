@@ -16,23 +16,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
  */
 export default function TeamMemberManagement() {
   const { user } = useAuth();
-
-  // Check if user is admin
-  if (user?.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Only firm admins can manage team members</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">You don't have permission to access this page. Please contact your firm administrator.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const isAdmin = user?.role === 'admin';
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('user');
@@ -98,6 +82,23 @@ export default function TeamMemberManagement() {
   const handleRevokeInvitation = async (invitationId: number) => {
     await revokeInviteMutation.mutateAsync({ invitationId });
   };
+
+  // Check if user is admin
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>Only firm admins can manage team members</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600">You don't have permission to access this page. Please contact your firm administrator.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (membersLoading || invitationsLoading) {
     return (

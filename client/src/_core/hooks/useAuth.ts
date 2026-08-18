@@ -45,7 +45,7 @@ export function useAuth(options?: UseAuthOptions) {
     // Only save user info if authenticated
     if (meQuery.data) {
       localStorage.setItem(
-        "manus-runtime-user-info",
+        "legal-os-user-info",
         JSON.stringify(meQuery.data)
       );
     }

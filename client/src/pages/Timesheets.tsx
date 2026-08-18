@@ -128,15 +128,12 @@ export function Timesheets() {
               <Card key={week} className="border-slate-700 bg-slate-900 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Week of {new Date(2026, 4, 11 - week * 7).toLocaleDateString()}</h4>
+                    <h4 className="font-medium">
+                      Week of {new Date(Date.now() - week * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                    </h4>
                     <p className="text-sm text-slate-400">32.5 hours • 86% billable • $4,200</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="border-slate-600">
-                      View
-                    </Button>
-                    <span className="px-3 py-1 bg-green-900 text-green-300 rounded text-sm">Approved</span>
-                  </div>
+                  <span className="px-3 py-1 bg-green-900 text-green-300 rounded text-sm">Approved</span>
                 </div>
               </Card>
             ))}

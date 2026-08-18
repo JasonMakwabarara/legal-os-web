@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -51,18 +52,26 @@ export const eSignaturesRouter = router({
         // Simulate DocuSign API call
         const envelopeId = `DSAPI_${Math.random().toString(36).substring(7)}`;
 
-        // Create e-signature record
-        await db.createESignature({
-          contractId: input.contractId,
-          firmId: ctx.user.firmId,
-          provider: 'docusign',
-          envelopeId,
-          status: 'sent',
-          signers: input.signers as any,
-          sentBy: ctx.user.id,
-          sentAt: new Date(),
-          expiresAt: new Date(Date.now() + input.expirationDays * 24 * 60 * 60 * 1000),
-        });
+        // Create one pending e-signature record per signer. The contract stands in
+        // for the signed document in this simulated flow, and the initiating user is
+        // recorded as the internal signer of record.
+        for (const signer of input.signers) {
+          await db.createESignature({
+            firmId: ctx.user.firmId,
+            documentId: input.contractId,
+            signerId: ctx.user.id,
+            signerName: signer.name,
+            signerEmail: signer.email,
+            signatureHash: crypto
+              .createHash("sha256")
+              .update(`${envelopeId}:${signer.email}`)
+              .digest("hex"),
+            ipAddress: ctx.req.ip || "0.0.0.0",
+            userAgent: ctx.req.headers["user-agent"],
+            status: "pending",
+            verificationToken: crypto.randomUUID(),
+          });
+        }
 
         return {
           success: true,
@@ -95,18 +104,24 @@ export const eSignaturesRouter = router({
         // Simulate HelloSign API call
         const signatureRequestId = `HS_${Math.random().toString(36).substring(7)}`;
 
-        // Create e-signature record
-        await db.createESignature({
-          contractId: input.contractId,
-          firmId: ctx.user.firmId,
-          provider: 'hellosign',
-          envelopeId: signatureRequestId,
-          status: 'sent',
-          signers: input.signers as any,
-          sentBy: ctx.user.id,
-          sentAt: new Date(),
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        });
+        // Create one pending e-signature record per signer (see sendDocuSign).
+        for (const signer of input.signers) {
+          await db.createESignature({
+            firmId: ctx.user.firmId,
+            documentId: input.contractId,
+            signerId: ctx.user.id,
+            signerName: signer.name,
+            signerEmail: signer.email,
+            signatureHash: crypto
+              .createHash("sha256")
+              .update(`${signatureRequestId}:${signer.email}`)
+              .digest("hex"),
+            ipAddress: ctx.req.ip || "0.0.0.0",
+            userAgent: ctx.req.headers["user-agent"],
+            status: "pending",
+            verificationToken: crypto.randomUUID(),
+          });
+        }
 
         return {
           success: true,
@@ -348,10 +363,3 @@ export const eSignaturesRouter = router({
       };
     }),
 });
-
-// Helper function to create e-signature record
-async function createESignature(data: any) {
-  const db_instance = await db.getDb();
-  if (!db_instance) throw new Error("Database not available");
-  return db_instance.insert(db.eSignatures).values(data);
-}

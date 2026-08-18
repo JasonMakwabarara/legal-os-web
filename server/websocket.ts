@@ -4,16 +4,39 @@
 
 import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import { getDb } from './db';
+import { parse as parseCookieHeader } from 'cookie';
+import { COOKIE_NAME } from '@shared/const';
+import { sdk } from './_core/sdk';
+import { getDb, getUserByOpenId } from './db';
 
 interface ConnectedUser {
   userId: number;
-  firmId: number;
+  firmId: number | null;
   socketId: string;
 }
 
 const connectedUsers = new Map<string, ConnectedUser>();
 let io: SocketIOServer | null = null;
+
+/**
+ * Derive the connecting user's identity from the verified session JWT cookie
+ * (app_session_id). Client-supplied identity fields are never trusted.
+ */
+async function resolveSocketUser(
+  socket: Socket
+): Promise<{ userId: number; firmId: number | null } | null> {
+  const cookieHeader = socket.handshake.headers.cookie;
+  if (!cookieHeader) return null;
+
+  const cookies = parseCookieHeader(cookieHeader);
+  const session = await sdk.verifySession(cookies[COOKIE_NAME]);
+  if (!session) return null;
+
+  const user = await getUserByOpenId(session.openId);
+  if (!user) return null;
+
+  return { userId: user.id, firmId: user.firmId ?? null };
+}
 
 export function initializeWebSocket(httpServer: HTTPServer) {
   io = new SocketIOServer(httpServer, {
@@ -25,20 +48,42 @@ export function initializeWebSocket(httpServer: HTTPServer) {
     transports: ['websocket', 'polling'],
   });
 
-  io.on('connection', (socket: Socket) => {
-    console.log(`[WebSocket] Client connected: ${socket.id}`);
+  // Handshake middleware: reject sockets without a valid session cookie and
+  // attach the server-side verified identity to socket.data.
+  io.use(async (socket, next) => {
+    try {
+      const identity = await resolveSocketUser(socket);
+      if (!identity) {
+        next(new Error('Unauthorized'));
+        return;
+      }
+      socket.data.userId = identity.userId;
+      socket.data.firmId = identity.firmId;
+      next();
+    } catch (error) {
+      console.error('[WebSocket] Handshake authentication failed:', error);
+      next(new Error('Unauthorized'));
+    }
+  });
 
-    // Handle user authentication
-    socket.on('authenticate', (data: { userId: number; firmId: number }) => {
-      const user: ConnectedUser = {
-        userId: data.userId,
-        firmId: data.firmId,
-        socketId: socket.id,
-      };
-      connectedUsers.set(socket.id, user);
-      socket.join(`firm:${data.firmId}`);
-      socket.join(`user:${data.userId}`);
-      console.log(`[WebSocket] User ${data.userId} authenticated on socket ${socket.id}`);
+  io.on('connection', (socket: Socket) => {
+    const userId = socket.data.userId as number;
+    const firmId = (socket.data.firmId as number | null) ?? null;
+
+    console.log(`[WebSocket] Client connected: ${socket.id} (user ${userId})`);
+
+    // Join rooms based on the verified identity only.
+    connectedUsers.set(socket.id, { userId, firmId, socketId: socket.id });
+    socket.join(`user:${userId}`);
+    if (firmId) {
+      socket.join(`firm:${firmId}`);
+    }
+
+    // Kept for backward compatibility with clients that emit 'authenticate'.
+    // Any client-supplied userId/firmId payload is ignored; rooms were already
+    // joined from the verified session above.
+    socket.on('authenticate', () => {
+      socket.emit('authenticated', { userId, firmId });
     });
 
     // Handle disconnect

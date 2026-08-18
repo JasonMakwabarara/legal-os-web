@@ -82,6 +82,8 @@ export const MOCK_CONTRACTS: Contract[] = [
 ];
 
 // Mock Workflows
+const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+
 export const MOCK_WORKFLOWS: WorkflowItem[] = [
   {
     id: 'workflow-001',
@@ -89,7 +91,7 @@ export const MOCK_WORKFLOWS: WorkflowItem[] = [
     title: 'Contract Review — TechCorp Service Agreement',
     status: 'processing',
     progress: 78,
-    lastUpdated: '2026-04-20T10:15:00Z',
+    lastUpdated: hoursAgo(2),
   },
   {
     id: 'workflow-002',
@@ -97,15 +99,15 @@ export const MOCK_WORKFLOWS: WorkflowItem[] = [
     title: 'Due Diligence — Global Partners Acquisition',
     status: 'processing',
     progress: 45,
-    lastUpdated: '2026-04-20T09:30:00Z',
+    lastUpdated: hoursAgo(3),
   },
   {
     id: 'workflow-003',
     type: 'litigation_prep',
-    title: 'Litigation Preparation — Case #2026-1847',
+    title: 'Licence Review — DataFlow Systems (RH-2026-029)',
     status: 'awaiting_approval',
     progress: 92,
-    lastUpdated: '2026-04-20T08:45:00Z',
+    lastUpdated: hoursAgo(5),
   },
 ];
 
@@ -198,11 +200,11 @@ export const MOCK_INTELLIGENCE_INSIGHTS: IntelligenceInsight[] = [
 export function getRiskLevelColor(level: 'low' | 'medium' | 'high'): string {
   switch (level) {
     case 'high':
-      return '#FF9800'; // Amber
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'medium':
-      return '#FFA500'; // Orange
+      return 'bg-warning/10 text-warning border-warning/20';
     case 'low':
-      return '#A8E063'; // Charge Green
+      return 'bg-success/10 text-success border-success/20';
   }
 }
 

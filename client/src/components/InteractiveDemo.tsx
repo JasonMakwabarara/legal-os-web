@@ -58,12 +58,12 @@ const demoSteps: DemoStep[] = [
     action: 'Detected 3 high-risk items requiring attention',
   },
   {
-    id: 'collaborate',
-    title: 'Real-Time Collaboration',
-    description: 'Invite team members to review and edit simultaneously',
+    id: 'attach',
+    title: 'Attach to Matter & Client',
+    description: 'Link the review to the right client and matter — practice management built in',
     icon: <Users className="w-8 h-8" />,
     duration: 2,
-    action: 'Sarah Chen joined the review session',
+    action: 'Attached to TechCorp Inc — MSA negotiation',
   },
   {
     id: 'insights',
@@ -173,7 +173,7 @@ export default function InteractiveDemo() {
       {/* Header */}
       <div className="mb-4">
         <p className="text-slate-400 text-xs sm:text-sm">
-          Watch how Legal OS analyzes contracts, detects risks, and enables real-time collaboration
+          Watch how Legal OS analyzes contracts, detects risks, and files every review under the right matter
         </p>
       </div>
 

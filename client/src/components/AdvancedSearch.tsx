@@ -48,7 +48,7 @@ interface SavedSearch {
 const mockSearchResults: SearchResult[] = [
   {
     id: '1',
-    documentName: 'Service Agreement - Acme Corp',
+    documentName: 'Service Agreement - TechCorp Inc',
     documentType: 'Contract',
     excerpt: 'The service provider shall maintain all confidential information in accordance with applicable laws and regulations...',
     relevance: 98,

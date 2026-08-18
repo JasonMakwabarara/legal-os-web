@@ -13,56 +13,43 @@ interface TourStep {
 const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Legal OS',
-    description: 'Your AI-powered legal practice management platform. Let\'s take a quick tour to get you started.',
-    position: 'bottom',
+    title: 'Welcome to the Legal OS demo',
+    description: 'You\'re signed in as Rivera & Hale LLP, a seeded demo firm. Everything you see lives in this browser — nothing is sent to a server.',
   },
   {
-    id: 'dashboard',
-    title: 'Dashboard',
-    description: 'View your active cases, contracts, and upcoming deadlines at a glance. This is your command center.',
-    target: 'dashboard-section',
-    position: 'right',
+    id: 'cockpit',
+    title: 'The contract cockpit',
+    description: 'Active reviews, risk summary, and agent activity at a glance. Click the TechCorp Service Agreement to see the full review.',
+    target: 'nav-cockpit',
   },
   {
-    id: 'contracts',
-    title: 'Contract Management',
-    description: 'Manage all your contracts with AI-powered analysis, risk assessment, and collaboration features.',
-    target: 'contracts-nav',
-    position: 'right',
+    id: 'contract',
+    title: 'Risks and redlines',
+    description: 'Each contract shows a side-by-side original vs. redline with risk cards, estimated exposure, and an approval flow.',
+    target: 'nav-documents',
   },
   {
-    id: 'cases',
-    title: 'Case Management',
-    description: 'Track cases, assign tasks, and manage case workflows efficiently.',
-    target: 'cases-nav',
-    position: 'right',
+    id: 'matters',
+    title: 'Matters and clients built in',
+    description: 'Attach every review to a client and matter — light practice management without a second subscription.',
+    target: 'nav-matters',
   },
   {
-    id: 'ai-chat',
-    title: 'AI Legal Assistant',
-    description: 'Chat with our AI assistant for contract analysis, legal research, and document generation.',
-    target: 'ai-chat-nav',
-    position: 'right',
+    id: 'assistant',
+    title: 'Grounded assistant',
+    description: 'Ask about liability, indemnity, or termination. Answers are grounded in the contracts in this workspace.',
+    target: 'nav-assistant',
   },
   {
-    id: 'collaboration',
-    title: 'Real-Time Collaboration',
-    description: 'Share documents with team members and collaborate in real-time with WebSocket support.',
-    position: 'bottom',
-  },
-  {
-    id: 'notifications',
-    title: 'Notifications',
-    description: 'Stay updated with real-time notifications for deadlines, case updates, and collaborations.',
-    target: 'notifications-icon',
-    position: 'left',
+    id: 'playbook',
+    title: 'Your firm\'s playbook',
+    description: 'Standard positions — liability caps, indemnity limits, termination mechanics — that every review redlines toward.',
+    target: 'nav-playbook',
   },
   {
     id: 'complete',
-    title: 'You\'re All Set!',
-    description: 'You\'re ready to start using Legal OS. Explore the platform and discover all its features.',
-    position: 'bottom',
+    title: 'You\'re all set',
+    description: 'Try uploading your own NDA from the cockpit, or reset the demo data any time from the banner above.',
   },
 ];
 
@@ -74,16 +61,16 @@ interface OnboardingTourProps {
 export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(isOpen);
-  const [highlightedElement, setHighlightedElement] = useState<HTMLElement | null>(null);
+  const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
 
   const step = TOUR_STEPS[currentStep];
 
   useEffect(() => {
     if (isVisible && step.target) {
       const element = document.getElementById(step.target);
-      setHighlightedElement(element);
+      setHighlightRect(element ? element.getBoundingClientRect() : null);
     } else {
-      setHighlightedElement(null);
+      setHighlightRect(null);
     }
   }, [currentStep, isVisible, step.target]);
 
@@ -117,20 +104,15 @@ export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProp
 
   return (
     <>
-      {/* Overlay */}
-      {highlightedElement && (
-        <div className="fixed inset-0 bg-black/50 z-40 pointer-events-none" />
-      )}
-
       {/* Highlight Box */}
-      {highlightedElement && (
+      {highlightRect && (
         <div
-          className="fixed border-2 border-blue-500 rounded-lg z-40 pointer-events-none transition-all duration-300"
+          className="fixed border-2 border-accent rounded-lg z-40 pointer-events-none transition-all duration-300"
           style={{
-            top: `${highlightedElement.offsetTop - 8}px`,
-            left: `${highlightedElement.offsetLeft - 8}px`,
-            width: `${highlightedElement.offsetWidth + 16}px`,
-            height: `${highlightedElement.offsetHeight + 16}px`,
+            top: `${highlightRect.top - 6}px`,
+            left: `${highlightRect.left - 6}px`,
+            width: `${highlightRect.width + 12}px`,
+            height: `${highlightRect.height + 12}px`,
             boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
           }}
         />
@@ -138,7 +120,7 @@ export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProp
 
       {/* Tour Card */}
       <div
-        className="fixed z-50 bg-white rounded-lg shadow-2xl p-6 max-w-sm"
+        className="fixed z-50 bg-card text-card-foreground border border-border rounded-lg shadow-2xl p-6 max-w-sm"
         style={{
           bottom: '40px',
           right: '40px',
@@ -161,17 +143,18 @@ export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProp
         {/* Close Button */}
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="Close tour"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
         >
           <X size={20} />
         </button>
 
         {/* Content */}
         <div className="pr-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             {step.title}
           </h3>
-          <p className="text-gray-600 text-sm mb-4">
+          <p className="text-muted-foreground text-sm mb-4">
             {step.description}
           </p>
 
@@ -182,10 +165,10 @@ export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProp
                 key={index}
                 className={`h-1 flex-1 rounded-full transition-colors ${
                   index === currentStep
-                    ? 'bg-blue-500'
+                    ? 'bg-accent'
                     : index < currentStep
-                      ? 'bg-blue-300'
-                      : 'bg-gray-200'
+                      ? 'bg-accent/50'
+                      : 'bg-muted'
                 }`}
               />
             ))}
@@ -215,7 +198,7 @@ export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProp
             <Button
               size="sm"
               onClick={handleNext}
-              className="gap-1 bg-blue-500 hover:bg-blue-600"
+              className="gap-1"
             >
               {currentStep === TOUR_STEPS.length - 1 ? 'Finish' : 'Next'}
               {currentStep < TOUR_STEPS.length - 1 && <ChevronRight size={16} />}
@@ -224,13 +207,16 @@ export function OnboardingTour({ onComplete, isOpen = true }: OnboardingTourProp
         </div>
 
         {/* Step Counter */}
-        <div className="absolute bottom-4 left-6 text-xs text-gray-400">
+        <div className="absolute bottom-4 left-6 text-xs text-muted-foreground">
           {currentStep + 1} / {TOUR_STEPS.length}
         </div>
       </div>
     </>
   );
 }
+
+/** Fired by HelpMenu to relaunch the tour on demand. */
+export const START_TOUR_EVENT = 'legal-os:start-tour';
 
 /**
  * Hook to check if onboarding should be shown
@@ -241,6 +227,13 @@ export function useOnboarding() {
   useEffect(() => {
     const completed = localStorage.getItem('legal-os-onboarding-completed');
     setShouldShowOnboarding(!completed);
+
+    const handleStart = () => {
+      localStorage.removeItem('legal-os-onboarding-completed');
+      setShouldShowOnboarding(true);
+    };
+    window.addEventListener(START_TOUR_EVENT, handleStart);
+    return () => window.removeEventListener(START_TOUR_EVENT, handleStart);
   }, []);
 
   return {

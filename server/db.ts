@@ -113,6 +113,13 @@ export async function getUserByOpenId(openId: string) {
   return rows[0] || null;
 }
 
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(users).where(eq(users.email, email));
+  return rows[0] || null;
+}
+
 // Contracts queries
 export async function getContractsByFirm(firmId: number) {
   const db = await getDb();
@@ -241,7 +248,8 @@ export async function createContractVersion(data: typeof contractVersions.$infer
 export async function createWorkflow(data: typeof workflows.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.insert(workflows).values(data);
+  const result = await db.insert(workflows).values(data);
+  return { ...data, id: result[0].insertId };
 }
 
 export async function getWorkflowById(workflowId: number) {
@@ -630,11 +638,11 @@ export async function createSignatureAuditEntry(data: typeof signatureAuditTrail
   return { ...data, id: result[0].insertId };
 }
 
-export async function getSignatureAuditTrail(eSignatureId: number) {
+export async function getSignatureAuditTrail(signatureId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(signatureAuditTrail)
-    .where(eq(signatureAuditTrail.eSignatureId, eSignatureId))
+    .where(eq(signatureAuditTrail.signatureId, signatureId))
     .orderBy(desc(signatureAuditTrail.createdAt));
 }
 
@@ -827,7 +835,7 @@ export async function markNotificationAsRead(notificationId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.update(notifications)
-    .set({ isRead: true, readAt: new Date() })
+    .set({ isRead: 1, readAt: new Date() })
     .where(eq(notifications.id, notificationId));
 }
 

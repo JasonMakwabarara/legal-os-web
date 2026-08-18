@@ -134,10 +134,10 @@ export const timeTrackingRouter = router({
         ctx.user.firmId!,
         ctx.user.id
       );
-      const hourlyRate = rate?.hourlyRate || 0;
+      // Drizzle decimal columns are typed as strings
+      const hourlyRate = parseFloat(rate?.hourlyRate || "0");
       const billableMinutes = input.isBillable === "no" ? 0 : totalMinutes;
-      const billableAmount =
-        (billableMinutes / 60) * parseFloat(hourlyRate.toString());
+      const billableAmount = (billableMinutes / 60) * hourlyRate;
 
       // Create time entry
       const timeEntry = await db.createTimeEntry({
@@ -152,8 +152,8 @@ export const timeTrackingRouter = router({
         durationMinutes: totalMinutes,
         billableMinutes,
         isBillable: input.isBillable || "yes",
-        hourlyRate,
-        billableAmount,
+        hourlyRate: hourlyRate.toFixed(2),
+        billableAmount: billableAmount.toFixed(2),
         status: "draft",
         notes: input.notes,
         tags: input.tags,
@@ -260,10 +260,10 @@ export const timeTrackingRouter = router({
         ctx.user.firmId,
         ctx.user.id
       );
-      const hourlyRate = rate?.hourlyRate || 0;
+      // Drizzle decimal columns are typed as strings
+      const hourlyRate = parseFloat(rate?.hourlyRate || "0");
       const billableMinutes = input.isBillable === "yes" ? durationMinutes : 0;
-      const billableAmount =
-        (billableMinutes / 60) * parseFloat(hourlyRate.toString());
+      const billableAmount = (billableMinutes / 60) * hourlyRate;
 
       return await db.createTimeEntry({
         firmId: ctx.user.firmId,
@@ -275,8 +275,8 @@ export const timeTrackingRouter = router({
         durationMinutes,
         billableMinutes,
         isBillable: input.isBillable,
-        hourlyRate,
-        billableAmount,
+        hourlyRate: hourlyRate.toFixed(2),
+        billableAmount: billableAmount.toFixed(2),
         status: "draft",
         notes: input.notes,
         caseId: input.caseId,
@@ -319,7 +319,7 @@ export const timeTrackingRouter = router({
         isBillable: input.isBillable,
         notes: input.notes,
         billableMinutes,
-        billableAmount,
+        billableAmount: billableAmount.toFixed(2),
       });
     }),
 
@@ -408,7 +408,7 @@ export const timeTrackingRouter = router({
       return await db.createBillableRate({
         firmId: ctx.user.firmId,
         userId: ctx.user.id,
-        hourlyRate: input.hourlyRate,
+        hourlyRate: input.hourlyRate.toFixed(2),
         practiceArea: input.practiceArea,
         effectiveDate: new Date(),
         isActive: "yes",
@@ -484,8 +484,8 @@ export const timeTrackingRouter = router({
         invoiceNumber: `INV-${Date.now()}`,
         periodStartDate: timesheet.periodStartDate,
         periodEndDate: timesheet.periodEndDate,
-        totalAmount: timesheet.totalAmount || 0,
-        totalHours: timesheet.totalBillableHours || 0,
+        totalAmount: timesheet.totalAmount || "0",
+        totalHours: timesheet.totalBillableHours || "0",
         status: "draft",
         issuedDate: new Date(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
@@ -500,14 +500,14 @@ export const timeTrackingRouter = router({
       );
 
       for (const entry of entries) {
-        if (entry.billableAmount && entry.billableAmount > 0) {
+        if (entry.billableAmount && parseFloat(entry.billableAmount) > 0) {
           await db.createInvoiceLineItem({
             invoiceId: invoice.id,
             timeEntryId: entry.id,
             description: entry.description,
             taskType: entry.taskType,
-            hours: (entry.billableMinutes || 0) / 60,
-            hourlyRate: entry.hourlyRate || 0,
+            hours: ((entry.billableMinutes || 0) / 60).toFixed(2),
+            hourlyRate: entry.hourlyRate || "0",
             amount: entry.billableAmount,
           });
         }

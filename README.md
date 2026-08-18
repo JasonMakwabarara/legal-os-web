@@ -80,20 +80,54 @@ The application follows a contemporary legal tech design aesthetic that combines
 
 ## Product Tiers
 
-### Associate ($79/month)
-- Target: Solo lawyers, Small firms (1-5 lawyers)
-- Includes: Contract analysis, Clause extraction, Risk scoring, Basic redlining
-- 50 AI credits/month
+Priced **per firm**, not per Am Law seat.
 
-### Firm ($299/month)
-- Target: 5-25 lawyers, Boutique firms
-- Includes: Everything in Associate + Due diligence automation, Litigation prep, Workflow automation, Team collaboration
-- 300 AI credits/month
+### Starter ($99 / firm / month)
+- Target: Solo lawyers and shops of 1–5
+- Contract cockpit, risk scoring, redlines, 50 reviews/month, grounded assistant
 
-### Enterprise ($1,500-$5,000+/month)
-- Target: Large firms, Corporate legal departments
-- Includes: Full SpiderNet OS, Custom deployment, Private memory graph, Advanced permissions, API integrations
-- Unlimited AI credits
+### Professional ($299 / firm / month)
+- Target: 5–25 lawyers
+- Unlimited reviews, playbooks, team roles, audit trail
+
+### Enterprise (custom / firm)
+- Private inference on SpiderNet, dedicated tenant, SLA
+
+## Getting started (Netlify demo)
+
+This MVP runs as a **static SPA**. Demo data lives in the browser (`localStorage`). No MySQL or Express required.
+
+```bash
+pnpm install
+pnpm dev:web
+```
+
+Open http://localhost:3000
+
+Demo login: `demo@legalos.demo` / `Demo@2026!`
+
+Walkthrough: landing → start demo → cockpit → TechCorp MSA (risks + redlines) → attach client/matter → assistant.
+
+```bash
+pnpm test
+pnpm check
+pnpm build:web
+```
+
+Netlify: connect the GitHub repo (`JasonMakwabarara/legal-os-web`) and leave the base directory at the repo root — `.git` lives inside this folder, so no base override is needed. `netlify.toml` already sets `pnpm run build:web`, publish `dist/public`, SPA redirects, caching, and security headers. Do **not** drag-and-drop the project folder into Netlify (pnpm's symlinked `node_modules` breaks the upload with "Unable to read file" errors); if you must deploy manually, drop only `dist/public`.
+
+## Hosting — which SpiderNet server?
+
+**Do not drop this React app into SpiderNetOS as a feature pack.** SpiderNetOS is Laravel + Vue + Postgres behind Traefik. Legal OS is React + (later) Node. Hannah's VPS deploy pipeline is PHP. ZetKai is a Laravel PWA.
+
+| Host | Use now? | Role |
+| --- | --- | --- |
+| **Netlify** (same pattern as Apex-Landing) | Yes | Marketing + clickable cockpit demo |
+| **SpiderNetOS Traefik + inference FastAPI** | Later | LLM/redline workers; route `/legal-os` to this SPA and `/api` to a Node service |
+| **SpiderNet feature pack `legal-os`** | Later | Agents/flows only, not a rewrite of this UI |
+| **Hannah VPS (`89.167.118.233`)** | No | PHP/Laravel push-to-deploy, wrong runtime |
+
+When servers are ready: set `VITE_DEMO_MODE=false` and `VITE_API_URL` to the Node API origin. Keep Netlify as the CDN.
 
 ## Technical Stack
 
@@ -139,13 +173,14 @@ client/
 # Install dependencies
 pnpm install
 
-# Start development server
+# Browser-only demo (Windows-safe, no Express)
+pnpm dev:web
+
+# Full Express + MySQL stack (Unix; needs DATABASE_URL)
 pnpm dev
 
-# Build for production
-pnpm build
-
-# Preview production build
+# Production web build for Netlify
+pnpm build:web
 pnpm preview
 ```
 

@@ -3,11 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Plus, Search, Upload, FileText, Download, Eye, Trash2, Clock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, Upload, FileText, Download, Loader2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
+import { FileUploadDialog } from '@/components/FileUploadDialog';
 
 /**
  * Document Management Page
@@ -19,6 +20,7 @@ export default function DocumentManagement() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -26,6 +28,11 @@ export default function DocumentManagement() {
       setLocation('/');
     }
   }, [isAuthenticated, authLoading, setLocation]);
+
+  // Fetch documents from backend
+  const { data: documents = [], isLoading: documentsLoading, error: documentsError } = trpc.documents.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
 
   if (authLoading) {
     return (
@@ -38,9 +45,6 @@ export default function DocumentManagement() {
   if (!isAuthenticated) {
     return null;
   }
-
-  // Fetch documents from backend
-  const { data: documents = [], isLoading: documentsLoading, error: documentsError } = trpc.documents.list.useQuery();
 
   if (documentsLoading) {
     return (
@@ -121,7 +125,7 @@ export default function DocumentManagement() {
               </h1>
               <p className="text-sm text-muted-foreground">Centralized document repository with version control</p>
             </div>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled>
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => setUploadOpen(true)}>
               <Upload className="w-4 h-4 mr-2" />
               Upload Document
             </Button>
@@ -195,12 +199,6 @@ export default function DocumentManagement() {
                               </a>
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" disabled>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" disabled>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -211,6 +209,8 @@ export default function DocumentManagement() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <FileUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} documentType="contract" />
     </div>
   );
 }

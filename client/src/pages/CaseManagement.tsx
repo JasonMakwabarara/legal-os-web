@@ -27,6 +27,16 @@ export default function CaseManagement() {
     }
   }, [isAuthenticated, authLoading, setLocation]);
 
+  // Fetch cases from backend
+  const { data: cases = [], isLoading: casesLoading, error: casesError } = trpc.cases.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: members = [] } = trpc.firms.getMembers.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: documents = [] } = trpc.documents.list.useQuery(undefined, { enabled: isAuthenticated });
+
+  const memberName = (id: number | null) => members.find((m) => m.id === id)?.name;
+  const documentCount = (caseId: number) => documents.filter((d: any) => d.caseId === caseId).length;
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -38,11 +48,6 @@ export default function CaseManagement() {
   if (!isAuthenticated) {
     return null;
   }
-
-  // Fetch cases from backend
-  const { data: cases = [], isLoading: casesLoading, error: casesError } = trpc.cases.list.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
 
   if (casesLoading) {
     return (
@@ -192,7 +197,7 @@ export default function CaseManagement() {
                             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                               <Users className="w-4 h-4 text-accent" />
                             </div>
-                            <p className="font-medium text-foreground text-sm">{caseItem.assignedTo ? `User #${caseItem.assignedTo}` : 'Unassigned'}</p>
+                            <p className="font-medium text-foreground text-sm">{memberName(caseItem.assignedTo) ?? 'Unassigned'}</p>
                           </div>
                         </div>
 
@@ -211,7 +216,7 @@ export default function CaseManagement() {
                             <p className="text-xs text-muted-foreground mb-1">Documents</p>
                             <div className="flex items-center gap-2">
                               <FileText className="w-4 h-4 text-muted-foreground" />
-                              <p className="font-medium text-foreground text-sm">0</p>
+                              <p className="font-medium text-foreground text-sm">{documentCount(caseItem.id)}</p>
                             </div>
                           </div>
                         </div>

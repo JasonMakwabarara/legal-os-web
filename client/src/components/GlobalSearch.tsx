@@ -50,7 +50,12 @@ export function GlobalSearch() {
   // Keyboard shortcut
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || e.key === '/') {
+      const target = e.target as HTMLElement | null;
+      const isTyping =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target != null && target.isContentEditable);
+      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !isTyping)) {
         e.preventDefault();
         setOpen(true);
       }
@@ -64,9 +69,9 @@ export function GlobalSearch() {
     if (type === 'contract') {
       setLocation(`/contract/${id}`);
     } else if (type === 'case') {
-      setLocation(`/cases/${id}`);
+      setLocation('/cases');
     } else if (type === 'client') {
-      setLocation(`/clients/${id}`);
+      setLocation('/clients');
     }
     setOpen(false);
     setSearchQuery('');

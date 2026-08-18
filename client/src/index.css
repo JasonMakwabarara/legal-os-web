@@ -25,6 +25,11 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-tealime: var(--tealime);
+  --color-charge: var(--charge);
+  --color-dusk: var(--dusk);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -53,6 +58,9 @@
   --accent-foreground: #1a2847;
   --success: #A8E063; /* Charge Green */
   --warning: #FF9800; /* Amber */
+  --tealime: #56CCF2;
+  --charge: #A8E063;
+  --dusk: #1a2847;
   --chart-1: #56CCF2;
   --chart-2: #A8E063;
   --chart-3: #1a2847;

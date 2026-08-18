@@ -1,33 +1,62 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route, Switch } from "wouter";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { Loader2 } from "lucide-react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { OnboardingProvider } from "./contexts/OnboardingContext";
-import { GuidedTour } from "./components/GuidedTour";
 import { useAuth } from "@/_core/hooks/useAuth";
-import Dashboard from "./pages/Dashboard";
-import ContractDetail from "./pages/ContractDetail";
-import NotFound from "./pages/NotFound";
-import AcceptInvitation from "./pages/AcceptInvitation";
-import CaseManagement from "./pages/CaseManagement";
-import ClientManagement from "./pages/ClientManagement";
-import DocumentManagement from "./pages/DocumentManagement";
-import AIChatPage from "./pages/AIChatPage";
-import LandingPage from "./pages/LandingPage";
-import FirmSetup from "./pages/FirmSetup";
-import OnboardingWelcome from "./pages/OnboardingWelcome";
-import { ClauseTemplateBuilder } from "./components/ClauseTemplateBuilder";
-import { TemplateApprovalDashboard } from "./components/TemplateApprovalDashboard";
 import { OnboardingTour, useOnboarding } from "./components/OnboardingTour";
-import BlogResources from "./pages/BlogResources";
-import AdvancedSearchPage from "./pages/AdvancedSearchPage";
-import OCRProcessingPage from "./pages/OCRProcessingPage";
-import ClauseComparisonPage from "./pages/ClauseComparisonPage";
-import TemplateLibraryPage from "./pages/TemplateLibraryPage";
-import { Timesheets } from "./pages/Timesheets";
-import { Integrations } from "./pages/Integrations";
-import { Reports } from "./pages/Reports";
+import LandingPage from "./pages/LandingPage";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import DashboardLayout from "./components/DashboardLayout";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ContractDetail = lazy(() => import("./pages/ContractDetail"));
+const AcceptInvitation = lazy(() => import("./pages/AcceptInvitation"));
+const CaseManagement = lazy(() => import("./pages/CaseManagement"));
+const ClientManagement = lazy(() => import("./pages/ClientManagement"));
+const DocumentManagement = lazy(() => import("./pages/DocumentManagement"));
+const AIChatPage = lazy(() => import("./pages/AIChatPage"));
+const FirmSetup = lazy(() => import("./pages/FirmSetup"));
+const ClauseTemplateBuilder = lazy(() =>
+  import("./components/ClauseTemplateBuilder").then(m => ({ default: m.ClauseTemplateBuilder })),
+);
+const TemplateApprovalDashboard = lazy(() =>
+  import("./components/TemplateApprovalDashboard").then(m => ({ default: m.TemplateApprovalDashboard })),
+);
+const BlogResources = lazy(() => import("./pages/BlogResources"));
+const AdvancedSearchPage = lazy(() => import("./pages/AdvancedSearchPage"));
+const OCRProcessingPage = lazy(() => import("./pages/OCRProcessingPage"));
+const ClauseComparisonPage = lazy(() => import("./pages/ClauseComparisonPage"));
+const TemplateLibraryPage = lazy(() => import("./pages/TemplateLibraryPage"));
+const Timesheets = lazy(() => import("./pages/Timesheets").then(m => ({ default: m.Timesheets })));
+const Integrations = lazy(() => import("./pages/Integrations").then(m => ({ default: m.Integrations })));
+const Reports = lazy(() => import("./pages/Reports").then(m => ({ default: m.Reports })));
+const TeamPage = lazy(() => import("./pages/TeamPage"));
+
+function AppShell({ children }: { children: ReactNode }) {
+  return <DashboardLayout>{children}</DashboardLayout>;
+}
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-accent" />
+    </div>
+  );
+}
+
+function HomeRoute() {
+  const { isAuthenticated, loading } = useAuth();
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    if (!loading && isAuthenticated) setLocation("/dashboard");
+  }, [isAuthenticated, loading, setLocation]);
+  if (loading || isAuthenticated) return null;
+  return <LandingPage />;
+}
 
 /**
  * Legal OS Application Router
@@ -35,44 +64,36 @@ import { Reports } from "./pages/Reports";
  * - Deep Navy primary (#1a2847) for trust and authority
  * - Tealime accents (#56CCF2) for AI intelligence
  * - Clean, professional layout with command-driven interface
- * 
- * Routes:
- * / - Landing page (unauthenticated) / Dashboard (authenticated)
- * /dashboard - Dashboard (authenticated)
- * /contract/:id - Contract detail and analysis
- * /cases - Case management
- * /clients - Client management
- * /documents - Document management
- * /ai-chat - AI legal assistant
  */
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Switch>
-      <Route path={"/"} component={LandingPage} />
-      <Route path={"/firm-setup"} component={FirmSetup} />
-      <Route path={"/onboarding"} component={OnboardingWelcome} />
-      <Route path={"/dashboard"} component={Dashboard} />
-         <Route path={"/contract/:id"} component={ContractDetail} />
-      <Route path={"/search"} component={AdvancedSearchPage} />
-      <Route path={"/ocr"} component={OCRProcessingPage} />
-      <Route path={"/comparison"} component={ClauseComparisonPage} />
-      <Route path={"/cases"} component={CaseManagement} />
-      <Route path={"/clients"} component={ClientManagement} />
-      <Route path={"/documents"} component={DocumentManagement} />
-      <Route path={"/ai-chat"} component={AIChatPage} />
-      <Route path={"/template-builder"} component={ClauseTemplateBuilder} />
-      <Route path={"/approvals"} component={TemplateApprovalDashboard} />
-      <Route path={"/blog"} component={BlogResources} />
-      <Route path={"/templates"} component={TemplateLibraryPage} />
-      <Route path={"/timesheets"} component={Timesheets} />
-      <Route path={"/integrations"} component={Integrations} />
-      <Route path={"/reports"} component={Reports} />
-      <Route path={"/accept-invitation/:code"} component={AcceptInvitation} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={HomeRoute} />
+      <Route path="/login" component={Login} />
+      <Route path="/firm-setup" component={FirmSetup} />
+      <Route path="/dashboard">{() => <AppShell><Dashboard /></AppShell>}</Route>
+      <Route path="/contract/:id">{() => <AppShell><ContractDetail /></AppShell>}</Route>
+      <Route path="/search" component={AdvancedSearchPage} />
+      <Route path="/ocr" component={OCRProcessingPage} />
+      <Route path="/comparison" component={ClauseComparisonPage} />
+      <Route path="/cases">{() => <AppShell><CaseManagement /></AppShell>}</Route>
+      <Route path="/clients">{() => <AppShell><ClientManagement /></AppShell>}</Route>
+      <Route path="/documents">{() => <AppShell><DocumentManagement /></AppShell>}</Route>
+      <Route path="/ai-chat">{() => <AppShell><AIChatPage /></AppShell>}</Route>
+      <Route path="/template-builder">{() => <AppShell><ClauseTemplateBuilder /></AppShell>}</Route>
+      <Route path="/approvals">{() => <AppShell><TemplateApprovalDashboard /></AppShell>}</Route>
+      <Route path="/blog" component={BlogResources} />
+      <Route path="/templates">{() => <AppShell><TemplateLibraryPage /></AppShell>}</Route>
+      <Route path="/timesheets">{() => <AppShell><Timesheets /></AppShell>}</Route>
+      <Route path="/integrations">{() => <AppShell><Integrations /></AppShell>}</Route>
+      <Route path="/reports">{() => <AppShell><Reports /></AppShell>}</Route>
+      <Route path="/team" component={TeamPage} />
+      <Route path="/accept-invitation/:code" component={AcceptInvitation} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
+    </Suspense>
   );
 }
 
@@ -93,7 +114,6 @@ function AppContent() {
       {showOnboarding && (
         <OnboardingTour onComplete={completeOnboarding} />
       )}
-      <GuidedTour />
       <Router />
     </>
   );
@@ -102,17 +122,15 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <OnboardingProvider>
-        <ThemeProvider
-          defaultTheme="dark"
-          switchable
-        >
-          <TooltipProvider>
-            <Toaster />
-            <AppContent />
-          </TooltipProvider>
-        </ThemeProvider>
-      </OnboardingProvider>
+      <ThemeProvider
+        defaultTheme="dark"
+        switchable
+      >
+        <TooltipProvider>
+          <Toaster />
+          <AppContent />
+        </TooltipProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

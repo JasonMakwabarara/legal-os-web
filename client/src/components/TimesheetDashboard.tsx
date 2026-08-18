@@ -40,9 +40,8 @@ export function TimesheetDashboard() {
   const handleSubmit = async () => {
     try {
       await submitTimesheetMutation.mutateAsync({
-        weekStart,
-        weekEnd,
-        entries,
+        timesheetId: 0,
+        notes: `Week ${format(weekStart, "yyyy-MM-dd")} to ${format(weekEnd, "yyyy-MM-dd")}`,
       });
     } catch (error) {
       console.error("Failed to submit timesheet:", error);

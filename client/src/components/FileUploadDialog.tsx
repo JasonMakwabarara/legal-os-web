@@ -25,14 +25,13 @@ export function FileUploadDialog({
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [uploadStatus, setUploadStatus] = useState<Record<string, 'pending' | 'uploading' | 'success' | 'error'>>({});
   const [selectedType, setSelectedType] = useState(documentType);
+  const [clientId, setClientId] = useState("none");
+  const [caseId, setCaseId] = useState("none");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // TODO: Implement document upload mutation in backend
-  // const uploadMutation = trpc.documents.create.useMutation({
-  //   onSuccess: () => {
-  //     onSuccess?.();
-  //   },
-  // });
+  const utils = trpc.useUtils();
+  const { data: clients = [] } = trpc.clients.list.useQuery();
+  const { data: cases = [] } = trpc.cases.list.useQuery();
+  const createContract = trpc.contracts.create.useMutation();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -72,46 +71,54 @@ export function FileUploadDialog({
   };
 
   const handleUpload = async () => {
+    let allSucceeded = true;
+
     for (const file of files) {
       setUploadStatus((prev) => ({ ...prev, [file.name]: 'uploading' }));
 
+      // Simulate progress
+      const interval = setInterval(() => {
+        setUploadProgress((prev) => {
+          const current = prev[file.name] || 0;
+          if (current >= 90) {
+            return prev;
+          }
+          return { ...prev, [file.name]: current + Math.random() * 30 };
+        });
+      }, 300);
+
       try {
-        // Simulate progress
-        const interval = setInterval(() => {
-          setUploadProgress((prev) => {
-            const current = prev[file.name] || 0;
-            if (current >= 90) {
-              clearInterval(interval);
-              return prev;
-            }
-            return { ...prev, [file.name]: current + Math.random() * 30 };
-          });
-        }, 300);
+        await createContract.mutateAsync({
+          name: file.name.replace(/\.[^.]+$/, ""),
+          fileName: file.name,
+          fileMimeType: file.type || "application/octet-stream",
+          fileSize: file.size,
+          clientId: clientId === "none" ? null : Number(clientId),
+          caseId: caseId === "none" ? null : Number(caseId),
+        });
+        await utils.contracts.list.invalidate();
+        await utils.documents.list.invalidate();
 
-        // Upload file
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', selectedType);
-
-        // TODO: Replace with actual API call
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        clearInterval(interval);
         setUploadProgress((prev) => ({ ...prev, [file.name]: 100 }));
         setUploadStatus((prev) => ({ ...prev, [file.name]: 'success' }));
       } catch (error) {
+        allSucceeded = false;
         setUploadStatus((prev) => ({ ...prev, [file.name]: 'error' }));
+      } finally {
+        clearInterval(interval);
       }
     }
 
-    // Clear after successful upload
-    setTimeout(() => {
-      if (onSuccess) onSuccess();
-      setFiles([]);
-      setUploadProgress({});
-      setUploadStatus({});
-      onOpenChange(false);
-    }, 1500);
+    // Only auto-close when every file uploaded; failed files stay visible for retry
+    if (allSucceeded) {
+      setTimeout(() => {
+        if (onSuccess) onSuccess();
+        setFiles([]);
+        setUploadProgress({});
+        setUploadStatus({});
+        onOpenChange(false);
+      }, 1500);
+    }
   };
 
   const allUploaded = files.length > 0 && Object.values(uploadStatus).every((s) => s === 'success');
@@ -141,6 +148,33 @@ export function FileUploadDialog({
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-2 block">Client</label>
+              <Select value={clientId} onValueChange={setClientId} disabled={isUploading}>
+                <SelectTrigger><SelectValue placeholder="Optional client" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Unassigned</SelectItem>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={String(client.id)}>{client.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-2 block">Matter</label>
+              <Select value={caseId} onValueChange={setCaseId} disabled={isUploading}>
+                <SelectTrigger><SelectValue placeholder="Optional matter" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Unassigned</SelectItem>
+                  {cases.map(matter => (
+                    <SelectItem key={matter.id} value={String(matter.id)}>{matter.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Drop Zone */}
