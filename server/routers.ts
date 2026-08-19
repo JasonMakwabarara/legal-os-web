@@ -2,13 +2,19 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { authenticateLocalUser } from "./_core/localAuth";
+import { authenticateLocalUser, registerLocalUser } from "./_core/localAuth";
 import { sdk } from "./_core/sdk";
 import { z } from "zod";
 import * as db from "./db";
-import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "./_core/llm";
+import { completeLlm, getLlmModelName, LlmError } from "./services/llm";
+import {
+  analyzeContract,
+  extractTextFromUpload,
+  runContractReview,
+  totalExposureOf,
+} from "./services/contractAnalysis";
 import { generateRedlineAnalysis, generateDueDiligenceReport, generateLitigationStrategy, predictCaseOutcome } from "./services/advancedAIService";
 import { clausesRouter, realtimeNotificationsRouter } from "./routers-clauses";
 import { templatesRouter } from "./routers-templates";
@@ -21,6 +27,17 @@ import { researchRouter } from "./routers-research";
 import { complianceRouter } from "./routers-compliance";
 import { timeTrackingRouter } from "./routers-timetracking";
 import { exportRouter } from "./routers-export";
+
+
+/** Extract plain text from an invokeLLM result (content is string-typed union). */
+const llmText = (response: Awaited<ReturnType<typeof invokeLLM>>): string => {
+  const content = response.choices?.[0]?.message?.content;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content.map(part => ('text' in part ? part.text : '')).join('');
+  }
+  return '';
+};
 
 export const appRouter = router({
   system: systemRouter,
@@ -53,6 +70,52 @@ export const appRouter = router({
         ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
         return user;
+      }),
+    register: publicProcedure
+      .input(z.object({
+        name: z.string().min(1, 'Name is required').max(200),
+        email: z.string().email(),
+        password: z.string().min(8, 'Password must be at least 8 characters').max(200),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const user = await registerLocalUser(input);
+
+        if (!user) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'An account with this email already exists. Sign in instead.',
+          });
+        }
+
+        const sessionToken = await sdk.createSessionToken(user.openId, {
+          name: user.name || user.email || user.openId,
+          expiresInMs: ONE_YEAR_MS,
+        });
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return user;
+      }),
+    // Token variant of login for webviews where cookies are unreliable
+    // (Word add-in task pane). The token goes in `Authorization: Bearer`.
+    tokenLogin: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const user = await authenticateLocalUser(input.email, input.password);
+
+        if (!user) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Invalid email or password' });
+        }
+
+        const token = await sdk.createSessionToken(user.openId, {
+          name: user.name || user.email || user.openId,
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        return { user, token };
       }),
     initializeFirm: protectedProcedure
       .input(z.object({ firmName: z.string().min(1) }))
@@ -151,24 +214,76 @@ export const appRouter = router({
         clientId: z.number().nullable().optional(),
         caseId: z.number().nullable().optional(),
         description: z.string().optional(),
+        /** Base64 file content (optionally a data URL). Triggers the AI review. */
+        fileContent: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (!ctx.user.firmId) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
         }
-        await db.createContract({
+
+        // Extract text up front so a bad file fails the upload immediately.
+        let originalText: string | undefined;
+        if (input.fileContent) {
+          if ((input.fileSize ?? 0) > 50 * 1024 * 1024) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'File size exceeds 50MB limit' });
+          }
+          const base64 = input.fileContent.includes(',')
+            ? input.fileContent.slice(input.fileContent.indexOf(',') + 1)
+            : input.fileContent;
+          try {
+            const buffer = Buffer.from(base64, 'base64');
+            originalText = await extractTextFromUpload(buffer, input.fileName, input.fileMimeType);
+          } catch (error) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Could not read "${input.fileName}": ${(error as Error).message}`,
+            });
+          }
+          if (!originalText) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `"${input.fileName}" contains no readable text. Scanned PDFs need OCR before upload.`,
+            });
+          }
+        }
+
+        const created = await db.createContract({
           firmId: ctx.user.firmId,
           name: input.name,
           fileName: input.fileName,
           fileMimeType: input.fileMimeType,
           fileSize: input.fileSize,
           clientId: input.clientId ?? undefined,
+          caseId: input.caseId ?? undefined,
           description: input.description,
+          originalText,
           status: "review",
           uploadedBy: ctx.user.id,
         });
-        const contracts = await db.getContractsByFirm(ctx.user.firmId);
-        return contracts.find(c => c.fileName === input.fileName && c.name === input.name) ?? contracts[0];
+        if (!created) {
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create contract' });
+        }
+
+        if (input.caseId) {
+          await db.createDocument({
+            firmId: ctx.user.firmId,
+            contractId: created.id,
+            caseId: input.caseId,
+            name: input.fileName || input.name,
+            type: "contract",
+            fileName: input.fileName,
+            uploadedBy: ctx.user.id,
+          });
+        }
+
+        // Run the AI review in the background; the client polls via
+        // reviewProgress / getRisks / getRedlines.
+        if (originalText) {
+          void runContractReview(created.id, originalText);
+        }
+
+        return created;
       }),
 
     attach: protectedProcedure
@@ -186,7 +301,10 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
         }
         if (input.clientId !== undefined) {
-          await db.updateContract(input.id, { clientId: input.clientId ?? undefined });
+          await db.updateContract(input.id, { clientId: input.clientId });
+        }
+        if (input.caseId !== undefined) {
+          await db.updateContract(input.id, { caseId: input.caseId });
         }
         if (input.caseId) {
           await db.createDocument({
@@ -212,9 +330,20 @@ export const appRouter = router({
         if (!contract) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
         }
+        const reviewRunning =
+          contract.reviewProgress > 0 && contract.reviewProgress < 100 && !contract.redlinedText;
         return {
-          originalText: contract.description || "Original contract text is not stored on the server yet.",
-          redlinedText: "AI redlines will be generated by the hosted inference plane.",
+          originalText:
+            contract.originalText ||
+            contract.description ||
+            "The original text for this contract was not stored. Re-upload the file to run an AI review.",
+          redlinedText:
+            contract.redlinedText ||
+            (reviewRunning
+              ? "AI review in progress — refresh in a few seconds."
+              : "No AI redline available yet. Upload the contract file to generate one."),
+          analysisSummary: contract.analysisSummary ?? null,
+          reviewProgress: contract.reviewProgress,
         };
       }),
 
@@ -333,13 +462,33 @@ export const appRouter = router({
           if (input.fileSize > 50 * 1024 * 1024) {
             throw new Error('File size exceeds 50MB limit');
           }
-          const buffer = Buffer.from(input.fileContent.split(',')[1] || input.fileContent, 'base64');
-          const storageKey = `documents/${ctx.user.firmId}/${Date.now()}-${input.fileName}`;
-          const { url, key } = await storagePut(storageKey, buffer, input.fileMimeType);
+          // Extract text server-side and store it in the database. The
+          // original binary is not retained this round (fileUrl stays null).
+          const base64 = input.fileContent.includes(',')
+            ? input.fileContent.slice(input.fileContent.indexOf(',') + 1)
+            : input.fileContent;
+          const buffer = Buffer.from(base64, 'base64');
+          const extractedText = await extractTextFromUpload(
+            buffer,
+            input.fileName,
+            input.fileMimeType
+          );
+
+          await db.createDocument({
+            firmId: ctx.user.firmId,
+            name: input.fileName,
+            type: 'other',
+            fileName: input.fileName,
+            fileMimeType: input.fileMimeType,
+            fileSize: input.fileSize,
+            status: 'active',
+            uploadedBy: ctx.user.id,
+          });
+
           return {
             tempId: input.tempId,
             fileName: input.fileName,
-            fileUrl: url,
+            extractedText,
           };
         } catch (error) {
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: `Upload failed: ${(error as Error).message}` });
@@ -414,7 +563,7 @@ export const appRouter = router({
             },
           });
 
-          const clauseData = JSON.parse(response.choices?.[0]?.message?.content as string);
+          const clauseData = JSON.parse(llmText(response));
           return {
             success: true,
             clauses: clauseData.clauses || [],
@@ -429,6 +578,7 @@ export const appRouter = router({
 
   // AI Analysis router
   analysis: router({
+    /** Re-run the AI review for a stored contract (synchronous). */
     analyzeContract: protectedProcedure
       .input(z.object({ contractId: z.number() }))
       .mutation(async ({ ctx, input }) => {
@@ -439,15 +589,55 @@ export const appRouter = router({
         if (!contract) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
         }
-        // TODO: Implement AI contract analysis using LLM
+        if (!contract.originalText) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'No stored text for this contract — re-upload the file to analyze it.',
+          });
+        }
+        await db.deleteRiskAlertsByContract(contract.id);
+        await runContractReview(contract.id, contract.originalText);
+        const updated = await db.getContractById(contract.id, ctx.user.firmId);
         return {
-          summary: 'Contract analysis in progress...',
-          keyTerms: ['Payment Terms', 'Liability', 'Termination'],
-          recommendations: ['Review liability clause', 'Clarify payment terms'],
-          status: 'analyzing',
+          summary: updated?.analysisSummary ?? '',
+          riskLevel: updated?.riskLevel ?? 'medium',
+          totalExposure: updated?.totalExposure ?? '0',
+          status: updated?.reviewProgress === 100 ? 'completed' : 'failed',
         };
       }),
 
+    /**
+     * Analyze a document supplied as paragraph chunks — the Word add-in path.
+     * Returns paragraph-anchored redlines plus risks and the marked-up text.
+     */
+    analyzeDocument: protectedProcedure
+      .input(z.object({
+        documentName: z.string().optional(),
+        paragraphs: z.array(z.object({
+          index: z.number().int().min(0),
+          text: z.string(),
+        })).min(1).max(5000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user.firmId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
+        }
+        try {
+          const analysis = await analyzeContract({ paragraphs: input.paragraphs });
+          return {
+            ...analysis,
+            totalExposure: totalExposureOf(analysis.risks),
+            documentName: input.documentName,
+          };
+        } catch (error) {
+          if (error instanceof LlmError) {
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message });
+          }
+          throw error;
+        }
+      }),
+
+    /** Current stored risk picture for a contract (no LLM call). */
     assessRisks: protectedProcedure
       .input(z.object({ contractId: z.number() }))
       .mutation(async ({ ctx, input }) => {
@@ -458,16 +648,17 @@ export const appRouter = router({
         if (!contract) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Contract not found' });
         }
-        // TODO: Implement AI risk assessment using LLM
+        const alerts = await db.getRiskAlertsByContract(input.contractId);
+        const toEntry = (alert: (typeof alerts)[number]) => ({
+          issue: alert.issue,
+          exposure: Number(alert.exposure ?? 0),
+          recommendation: alert.recommendation ?? '',
+        });
         return {
-          highRisks: [
-            { issue: 'Unlimited liability clause', exposure: 500000, recommendation: 'Add cap on liability' },
-            { issue: 'Vague termination clause', exposure: 250000, recommendation: 'Define termination conditions' },
-          ],
-          mediumRisks: [
-            { issue: 'Payment terms unclear', exposure: 100000, recommendation: 'Specify payment schedule' },
-          ],
-          totalExposure: 850000,
+          highRisks: alerts.filter(a => a.level === 'high').map(toEntry),
+          mediumRisks: alerts.filter(a => a.level === 'medium').map(toEntry),
+          lowRisks: alerts.filter(a => a.level === 'low').map(toEntry),
+          totalExposure: Number(contract.totalExposure ?? 0),
           status: 'assessed',
         };
       }),
@@ -613,38 +804,102 @@ export const appRouter = router({
           firmId: ctx.user.firmId,
           userId: ctx.user.id,
           title: input.title || 'New Conversation',
-          model: 'qwen-3.5',
+          model: getLlmModelName(),
         });
       }),
 
     sendMessage: protectedProcedure
       .input(z.object({
         conversationId: z.string(),
-        content: z.string(),
+        content: z.string().min(1),
       }))
       .mutation(async ({ ctx, input }) => {
         if (!ctx.user.firmId) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'User not assigned to a firm' });
         }
-        // Store user message
+
+        // History BEFORE persisting the new message, so it isn't duplicated.
+        const history = await db.getAIChatMessages(input.conversationId);
+
         await db.createAIChatMessage({
           firmId: ctx.user.firmId,
           userId: ctx.user.id,
           conversationId: input.conversationId,
           role: 'user',
           content: input.content,
-          model: 'qwen-3.5',
+          model: getLlmModelName(),
         });
-        // TODO: Call Qwen 3.5 LLM API and store assistant response
-        // For now, return mock response
-        const assistantResponse = 'This is a mock AI response. Integration with Qwen 3.5 coming soon.';
+
+        // Ground the assistant in the firm's workspace: contract summaries,
+        // open risks, and text excerpts.
+        const firmContracts = await db.getContractsByFirm(ctx.user.firmId);
+        const recentContracts = firmContracts
+          .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
+          .slice(0, 8);
+
+        const contextBlocks: string[] = [];
+        for (const contract of recentContracts) {
+          const risks = await db.getRiskAlertsByContract(contract.id);
+          const openRisks = risks.filter(r => r.status === 'open');
+          const lines = [
+            `### ${contract.name} (status: ${contract.status}, risk: ${contract.riskLevel})`,
+          ];
+          if (contract.analysisSummary) lines.push(`Summary: ${contract.analysisSummary}`);
+          if (openRisks.length > 0) {
+            lines.push('Open risks:');
+            for (const risk of openRisks.slice(0, 6)) {
+              lines.push(`- [${risk.level}] ${risk.issue}${risk.recommendation ? ` → ${risk.recommendation}` : ''}`);
+            }
+          }
+          if (contract.originalText) {
+            lines.push(`Excerpt:\n"""\n${contract.originalText.slice(0, 1500)}\n"""`);
+          }
+          contextBlocks.push(lines.join('\n'));
+        }
+
+        const system = [
+          'You are the Legal OS assistant for a small law firm. You help lawyers understand the contracts in their workspace.',
+          'Ground every answer in the workspace contracts provided below. Name the contract you are drawing from. If the workspace does not contain the answer, say so plainly instead of guessing.',
+          'You provide decision support for qualified lawyers, not legal advice. Be concise and concrete.',
+          '',
+          contextBlocks.length > 0
+            ? `## Workspace contracts\n\n${contextBlocks.join('\n\n')}`
+            : '## Workspace contracts\n\n(No contracts uploaded yet — suggest uploading an agreement to review.)',
+        ].join('\n');
+
+        const chatHistory = history
+          .slice(-20)
+          .map(message => ({
+            role: message.role === 'assistant' ? ('assistant' as const) : ('user' as const),
+            content: message.content,
+          }));
+
+        let assistantResponse: string;
+        let servedByModel = getLlmModelName();
+        try {
+          const completion = await completeLlm({
+            system,
+            messages: [...chatHistory, { role: 'user', content: input.content }],
+            maxTokens: 4000,
+          });
+          assistantResponse = completion.text.trim();
+          servedByModel = completion.model || servedByModel;
+          if (!assistantResponse) {
+            throw new LlmError('The assistant returned an empty response — please retry.', { retryable: true });
+          }
+        } catch (error) {
+          const message =
+            error instanceof LlmError ? error.message : 'The assistant is unavailable right now.';
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message });
+        }
+
         await db.createAIChatMessage({
           firmId: ctx.user.firmId,
           userId: ctx.user.id,
           conversationId: input.conversationId,
           role: 'assistant',
           content: assistantResponse,
-          model: 'qwen-3.5',
+          model: servedByModel,
         });
         return { success: true, response: assistantResponse };
       }),
@@ -670,7 +925,7 @@ export const appRouter = router({
         });
         return {
           success: true,
-          analysis: response.choices?.[0]?.message?.content || '',
+          analysis: llmText(response),
           clauseType: input.clauseType,
         };
       }),
@@ -696,7 +951,7 @@ export const appRouter = router({
         });
         return {
           success: true,
-          answer: response.choices?.[0]?.message?.content || '',
+          answer: llmText(response),
           question: input.question,
         };
       }),
@@ -722,7 +977,7 @@ export const appRouter = router({
         });
         return {
           success: true,
-          summary: response.choices?.[0]?.message?.content || '',
+          summary: llmText(response),
           contractType: input.contractType,
           detailLevel: input.detailLevel,
         };
@@ -749,7 +1004,7 @@ export const appRouter = router({
         });
         return {
           success: true,
-          risks: response.choices?.[0]?.message?.content || '',
+          risks: llmText(response),
           contractType: input.contractType,
         };
       }),
@@ -775,7 +1030,7 @@ export const appRouter = router({
         });
         return {
           success: true,
-          suggestions: response.choices?.[0]?.message?.content || '',
+          suggestions: llmText(response),
           contractType: input.contractType,
         };
       }),

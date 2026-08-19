@@ -256,10 +256,19 @@ class SDKServer {
     } as GetUserInfoWithJwtResponse;
   }
 
+  private getBearerToken(req: Request): string | null {
+    const header = req.headers.authorization;
+    if (!header || Array.isArray(header)) return null;
+    const [scheme, token] = header.split(" ");
+    if (scheme?.toLowerCase() !== "bearer" || !token) return null;
+    return token;
+  }
+
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
+    // Session cookie first; Authorization: Bearer <jwt> as a fallback for
+    // contexts where third-party cookies are blocked (the Word add-in pane).
     const cookies = this.parseCookies(req.headers.cookie);
-    const sessionCookie = cookies.get(COOKIE_NAME);
+    const sessionCookie = cookies.get(COOKIE_NAME) ?? this.getBearerToken(req);
     const session = await this.verifySession(sessionCookie);
 
     if (!session) {

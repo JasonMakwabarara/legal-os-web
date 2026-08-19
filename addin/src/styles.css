@@ -1,0 +1,282 @@
+/* Legal OS task pane — Yacht Club (working-surface) palette.
+   Ground: Archival Cream · Nav: Deep Navy · Accent: Saddle-Tan · Text: Deep Ink */
+
+:root {
+  --ground: #F1EDE1;
+  --card: #F7F4EA;
+  --ink: #151E29;
+  --navy: #112233;
+  --saddle: #A87C53;
+  --saddle-hover: #966D47;
+  --cream: #F1EDE1;
+  --border: #D9D0BC;
+  --muted: #6B7280;
+  --oxblood: #8C3B2E;
+  --amber: #9A7530;
+  --hedge: #4E6B51;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.boot {
+  padding: 24px 16px;
+  color: var(--muted);
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.pane-header {
+  background: var(--navy);
+  color: var(--cream);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-family: Georgia, "Playfair Display", "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.brand-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #C9C2B1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pane-footer {
+  margin-top: auto;
+  padding: 10px 16px 14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pad {
+  padding: 14px 16px;
+}
+
+.stack > * + * {
+  margin-top: 10px;
+}
+
+.stack {
+  margin: 10px;
+}
+
+.pane > .stack {
+  display: flex;
+  flex-direction: column;
+}
+
+h2 {
+  font-family: Georgia, "Playfair Display", "Times New Roman", serif;
+  font-size: 17px;
+  margin: 0;
+}
+
+h3 {
+  font-family: Georgia, "Playfair Display", "Times New Roman", serif;
+  font-size: 14px;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.notice {
+  background: rgba(154, 117, 48, 0.12);
+  border: 1px solid rgba(154, 117, 48, 0.4);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--amber);
+}
+
+.error-text {
+  color: var(--oxblood);
+}
+
+.field {
+  display: block;
+}
+
+.field span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #FBF9F2;
+  color: var(--ink);
+  font: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: 2px solid rgba(168, 124, 83, 0.5);
+  border-color: var(--saddle);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background: var(--saddle);
+  color: #F7F4EA;
+  border: none;
+  padding: 9px 14px;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--saddle-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--border);
+  padding: 7px 12px;
+}
+
+.pane-header .btn-ghost {
+  color: var(--cream);
+  border-color: rgba(241, 237, 225, 0.35);
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.row-gap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #FDFBF7;
+  white-space: nowrap;
+}
+
+.chip-high {
+  background: var(--oxblood);
+}
+
+.chip-medium {
+  background: var(--amber);
+}
+
+.chip-low {
+  background: var(--hedge);
+}
+
+.risk {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.risk:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.excerpt {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.redline {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  background: #FBF9F2;
+}
+
+.redline .original {
+  text-decoration: line-through;
+  color: var(--oxblood);
+  word-break: break-word;
+}
+
+.redline .suggested {
+  color: var(--hedge);
+  font-weight: 600;
+  word-break: break-word;
+  margin-top: 4px;
+}
+
+.redline .muted {
+  margin-top: 4px;
+}
+
+.redline .row-gap {
+  margin-top: 8px;
+}
+
+.answer {
+  background: rgba(17, 34, 51, 0.06);
+  border-left: 3px solid var(--saddle);
+  border-radius: 4px;
+  padding: 10px;
+  white-space: pre-wrap;
+}

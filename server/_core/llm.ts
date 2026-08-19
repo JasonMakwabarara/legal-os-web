@@ -1,4 +1,4 @@
-import { ENV } from "./env";
+import { completeLlm, getLlmModelName, type LlmChatMessage } from "../services/llm";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -114,62 +114,6 @@ const ensureArray = (
   value: MessageContent | MessageContent[]
 ): MessageContent[] => (Array.isArray(value) ? value : [value]);
 
-const normalizeContentPart = (
-  part: MessageContent
-): TextContent | ImageContent | FileContent => {
-  if (typeof part === "string") {
-    return { type: "text", text: part };
-  }
-
-  if (part.type === "text") {
-    return part;
-  }
-
-  if (part.type === "image_url") {
-    return part;
-  }
-
-  if (part.type === "file_url") {
-    return part;
-  }
-
-  throw new Error("Unsupported message content part");
-};
-
-const normalizeMessage = (message: Message) => {
-  const { role, name, tool_call_id } = message;
-
-  if (role === "tool" || role === "function") {
-    const content = ensureArray(message.content)
-      .map(part => (typeof part === "string" ? part : JSON.stringify(part)))
-      .join("\n");
-
-    return {
-      role,
-      name,
-      tool_call_id,
-      content,
-    };
-  }
-
-  const contentParts = ensureArray(message.content).map(normalizeContentPart);
-
-  // If there's only text content, collapse to a single string for compatibility
-  if (contentParts.length === 1 && contentParts[0].type === "text") {
-    return {
-      role,
-      name,
-      content: contentParts[0].text,
-    };
-  }
-
-  return {
-    role,
-    name,
-    content: contentParts,
-  };
-};
-
 const normalizeToolChoice = (
   toolChoice: ToolChoice | undefined,
   tools: Tool[] | undefined
@@ -207,17 +151,6 @@ const normalizeToolChoice = (
   }
 
   return toolChoice;
-};
-
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
-
-const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
-  }
 };
 
 const normalizeResponseFormat = ({
@@ -265,9 +198,24 @@ const normalizeResponseFormat = ({
   };
 };
 
-export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
-  assertApiKey();
+const contentToText = (content: MessageContent | MessageContent[]): string =>
+  ensureArray(content)
+    .map(part => {
+      if (typeof part === "string") return part;
+      if (part.type === "text") return part.text;
+      throw new Error(
+        `Unsupported message content part "${part.type}" — the LLM provider accepts text only`
+      );
+    })
+    .join("\n");
 
+/**
+ * Compatibility wrapper kept for existing call sites (clause extraction,
+ * advanced AI reports, assistant modes). Presents an OpenAI-style
+ * request/response surface but delegates to the provider module in
+ * server/services/llm.ts (Anthropic by default).
+ */
+export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   const {
     messages,
     tools,
@@ -277,28 +225,14 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     output_schema,
     responseFormat,
     response_format,
+    maxTokens,
+    max_tokens,
   } = params;
 
-  const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
-    messages: messages.map(normalizeMessage),
-  };
-
   if (tools && tools.length > 0) {
-    payload.tools = tools;
-  }
-
-  const normalizedToolChoice = normalizeToolChoice(
-    toolChoice || tool_choice,
-    tools
-  );
-  if (normalizedToolChoice) {
-    payload.tool_choice = normalizedToolChoice;
-  }
-
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
+    // Guard loudly rather than silently ignoring — no current call site uses tools.
+    void normalizeToolChoice(toolChoice || tool_choice, tools);
+    throw new Error("invokeLLM tool calling is not supported by the configured provider");
   }
 
   const normalizedResponseFormat = normalizeResponseFormat({
@@ -308,25 +242,44 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     output_schema,
   });
 
-  if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
+  const systemParts: string[] = [];
+  const chatMessages: LlmChatMessage[] = [];
+  for (const message of messages) {
+    const text = contentToText(message.content);
+    if (message.role === "system") {
+      systemParts.push(text);
+    } else if (message.role === "assistant") {
+      chatMessages.push({ role: "assistant", content: text });
+    } else {
+      chatMessages.push({ role: "user", content: text });
+    }
+  }
+  if (chatMessages.length === 0) {
+    chatMessages.push({ role: "user", content: "Proceed." });
   }
 
-  const response = await fetch(resolveApiUrl(), {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
-    },
-    body: JSON.stringify(payload),
+  const jsonSchema =
+    normalizedResponseFormat?.type === "json_schema"
+      ? normalizedResponseFormat.json_schema.schema
+      : undefined;
+
+  const result = await completeLlm({
+    system: systemParts.length > 0 ? systemParts.join("\n\n") : undefined,
+    messages: chatMessages,
+    maxTokens: maxTokens ?? max_tokens ?? 16000,
+    jsonSchema,
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
-  }
-
-  return (await response.json()) as InvokeResult;
+  return {
+    id: `llm_${Date.now()}`,
+    created: Math.floor(Date.now() / 1000),
+    model: result.model || getLlmModelName(),
+    choices: [
+      {
+        index: 0,
+        message: { role: "assistant", content: result.text },
+        finish_reason: result.stopReason,
+      },
+    ],
+  };
 }

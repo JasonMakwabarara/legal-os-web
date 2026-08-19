@@ -60,10 +60,11 @@ function HomeRoute() {
 
 /**
  * Legal OS Application Router
- * Design Philosophy: Modern Professional with Legal Authority
- * - Deep Navy primary (#1a2847) for trust and authority
- * - Tealime accents (#56CCF2) for AI intelligence
- * - Clean, professional layout with command-driven interface
+ * Design Philosophy: two-mood luxury system
+ * - Yacht Club (light, default): Archival Cream ground (#F1EDE1), Deep Navy nav (#112233),
+ *   Saddle-Tan accents (#A87C53), Deep Ink text (#151E29) — the working interior
+ * - Phantom Sapphire (dark toggle + landing): Midnight Sapphire ground (#0B1320),
+ *   Weathered Navy cards (#1C2A3A), Champagne Brass accents (#C6AD7C), Ivory headlines (#FDFBF7)
  */
 function Router() {
   return (
@@ -123,7 +124,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="dark"
+        defaultTheme="light"
         switchable
       >
         <TooltipProvider>

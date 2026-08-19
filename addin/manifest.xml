@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Legal OS — Word add-in manifest (PRODUCTION).
+  Before sideloading: replace every "https://REPLACE-WITH-YOUR-APP-URL"
+  with your Railway domain (e.g. https://legal-os.up.railway.app), then
+  validate with: pnpm addin:validate
+-->
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+
+  <Id>179a8e96-d584-46cc-9c39-f90f694d5258</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Legal OS</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Legal OS Contract Review" />
+  <Description DefaultValue="AI contract review inside Word: risks with estimated exposure, and redlines you can apply as tracked changes." />
+  <IconUrl DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/assets/icon-80.png" />
+  <SupportUrl DefaultValue="https://REPLACE-WITH-YOUR-APP-URL" />
+
+  <AppDomains>
+    <AppDomain>https://REPLACE-WITH-YOUR-APP-URL</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Document" />
+  </Hosts>
+
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <!-- 1.3 keeps LTSC 2019+ installable; tracked changes (1.4) is runtime-gated. -->
+      <Set Name="WordApi" MinVersion="1.3" />
+    </Sets>
+  </Requirements>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/taskpane.html" />
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="LegalOS.Group">
+                <Label resid="LegalOS.GroupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="LegalOS.Icon.16" />
+                  <bt:Image size="32" resid="LegalOS.Icon.32" />
+                  <bt:Image size="80" resid="LegalOS.Icon.80" />
+                </Icon>
+                <Control xsi:type="Button" id="LegalOS.TaskpaneButton">
+                  <Label resid="LegalOS.TaskpaneButton.Label" />
+                  <Supertip>
+                    <Title resid="LegalOS.TaskpaneButton.Label" />
+                    <Description resid="LegalOS.TaskpaneButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="LegalOS.Icon.16" />
+                    <bt:Image size="32" resid="LegalOS.Icon.32" />
+                    <bt:Image size="80" resid="LegalOS.Icon.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>LegalOS.Taskpane</TaskpaneId>
+                    <SourceLocation resid="LegalOS.Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="LegalOS.Icon.16" DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/assets/icon-16.png" />
+        <bt:Image id="LegalOS.Icon.32" DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/assets/icon-32.png" />
+        <bt:Image id="LegalOS.Icon.80" DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/assets/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="LegalOS.Taskpane.Url" DefaultValue="https://REPLACE-WITH-YOUR-APP-URL/addin/taskpane.html" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="LegalOS.GroupLabel" DefaultValue="Legal OS" />
+        <bt:String id="LegalOS.TaskpaneButton.Label" DefaultValue="Contract Review" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="LegalOS.TaskpaneButton.Tooltip" DefaultValue="Analyze the open document with Legal OS: flag risks with estimated exposure and apply AI-proposed redlines as tracked changes." />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

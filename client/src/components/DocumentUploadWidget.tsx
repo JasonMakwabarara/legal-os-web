@@ -103,7 +103,7 @@ export default function DocumentUploadWidget() {
           const base64Content = (e.target?.result as string).split(',')[1];
           const fileMimeType = file.type || 'application/octet-stream';
 
-          await uploadMutation.mutateAsync({
+          const uploadResult = await uploadMutation.mutateAsync({
             fileName: file.name,
             fileContent: base64Content,
             fileMimeType: fileMimeType,
@@ -111,11 +111,13 @@ export default function DocumentUploadWidget() {
             tempId: docId,
           });
 
-          // Simulate text extraction for demo
-          const mockText = `This is extracted text from ${file.name}. In a production environment, this would contain the actual document content extracted via OCR or text parsing.`;
+          // The server extracts the real text (.txt direct, .docx, .pdf).
+          const documentText =
+            (uploadResult as { extractedText?: string }).extractedText ||
+            `No text could be extracted from ${file.name}.`;
 
           await extractMutation.mutateAsync({
-            documentText: mockText,
+            documentText,
             documentName: file.name,
           });
         };

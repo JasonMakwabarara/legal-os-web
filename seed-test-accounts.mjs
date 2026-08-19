@@ -34,12 +34,12 @@ async function seedTestAccounts() {
   const connection = await mysql.createConnection({
     host: url.hostname,
     user: url.username,
-    password: url.password,
+    password: decodeURIComponent(url.password),
     database: url.pathname.slice(1),
     port: url.port || 3306,
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    ...(process.env.DATABASE_SSL === 'false'
+      ? {}
+      : { ssl: { rejectUnauthorized: false } }),
   });
 
   const db = drizzle(connection);

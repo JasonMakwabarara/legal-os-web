@@ -139,7 +139,11 @@ export async function getContractById(contractId: number, firmId: number) {
 export async function createContract(data: typeof contracts.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.insert(contracts).values(data);
+  const result = await db.insert(contracts).values(data);
+  const insertId = Array.isArray(result) ? (result[0] as { insertId?: number })?.insertId : undefined;
+  if (!insertId) return null;
+  const rows = await db.select().from(contracts).where(eq(contracts.id, insertId));
+  return rows[0] ?? null;
 }
 
 export async function updateContract(contractId: number, data: Partial<typeof contracts.$inferInsert>) {
@@ -210,6 +214,12 @@ export async function createRiskAlert(data: typeof riskAlerts.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.insert(riskAlerts).values(data);
+}
+
+export async function deleteRiskAlertsByContract(contractId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(riskAlerts).where(eq(riskAlerts.contractId, contractId));
 }
 
 // Contract Collaborators queries

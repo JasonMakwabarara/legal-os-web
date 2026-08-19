@@ -49,81 +49,88 @@
 }
 
 :root {
-  /* Legal OS Color Palette */
-  --primary: #1a2847; /* Deep Navy */
-  --primary-foreground: #f8f9fa;
-  --sidebar-primary: #1a2847;
-  --sidebar-primary-foreground: #f8f9fa;
-  --accent: #56CCF2; /* Tealime */
-  --accent-foreground: #1a2847;
-  --success: #A8E063; /* Charge Green */
-  --warning: #FF9800; /* Amber */
-  --tealime: #56CCF2;
-  --charge: #A8E063;
-  --dusk: #1a2847;
-  --chart-1: #56CCF2;
-  --chart-2: #A8E063;
-  --chart-3: #1a2847;
-  --chart-4: #FF9800;
-  --chart-5: #E040FB;
+  /* Yacht Club — working app interior (light mood).
+     Ground: Archival Cream · Nav: Deep Navy · Accent: Saddle-Tan · Text: Deep Ink */
+  --primary: #112233; /* Deep Navy */
+  --primary-foreground: #F1EDE1; /* Archival Cream */
+  --sidebar-primary: #A87C53; /* Saddle-Tan */
+  --sidebar-primary-foreground: #F7F4EA;
+  --accent: #A87C53; /* Saddle-Tan */
+  --accent-foreground: #F7F4EA;
+  --success: #4E6B51; /* Hedge Green */
+  --warning: #9A7530; /* Aged Amber */
+  --tealime: #A87C53; /* legacy alias → saddle-tan */
+  --charge: #4E6B51; /* legacy alias → hedge green */
+  --dusk: #112233; /* legacy alias → deep navy */
+  --chart-1: #112233; /* navy */
+  --chart-2: #A87C53; /* saddle-tan */
+  --chart-3: #4E6B51; /* sage/hedge */
+  --chart-4: #9A7530; /* aged amber */
+  --chart-5: #8C3B2E; /* oxblood */
   --radius: 0.5rem;
-  --background: #f8f9fa;
-  --foreground: #1a2847;
-  --card: #ffffff;
-  --card-foreground: #1a2847;
-  --popover: #ffffff;
-  --popover-foreground: #1a2847;
-  --secondary: #e8eef5;
-  --secondary-foreground: #4a5568;
-  --muted: #cbd5e0;
-  --muted-foreground: #718096;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #ffffff;
-  --ring: #56CCF2;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1a2847;
-  --sidebar-accent: #56CCF2;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #56CCF2;
+  --background: #F1EDE1; /* Archival Cream */
+  --foreground: #151E29; /* Deep Ink */
+  --card: #F7F4EA;
+  --card-foreground: #151E29;
+  --popover: #F7F4EA;
+  --popover-foreground: #151E29;
+  --secondary: #E7E0CF;
+  --secondary-foreground: #3B4552;
+  --muted: #DDD5C2;
+  --muted-foreground: #6B7280;
+  --destructive: #8C3B2E; /* Oxblood */
+  --destructive-foreground: #FDFBF7;
+  --border: #D9D0BC;
+  --input: #FBF9F2;
+  --ring: #A87C53;
+  --sidebar: #112233; /* Deep Navy sidebar */
+  --sidebar-foreground: #F1EDE1; /* cream sidebar text */
+  --sidebar-accent: #A87C53;
+  --sidebar-accent-foreground: #F7F4EA;
+  --sidebar-border: #1E3346;
+  --sidebar-ring: #A87C53;
 }
 
 .dark {
-  /* Legal OS Dark Theme */
-  --primary: #1a2847;
-  --primary-foreground: #f8f9fa;
-  --sidebar-primary: #1f2937;
-  --sidebar-primary-foreground: #f8f9fa;
-  --background: #0f1419;
-  --foreground: #e5e7eb;
-  --card: #1a1f2e;
-  --card-foreground: #e5e7eb;
-  --popover: #1a1f2e;
-  --popover-foreground: #e5e7eb;
-  --secondary: #2d3748;
-  --secondary-foreground: #cbd5e0;
-  --muted: #4a5568;
-  --muted-foreground: #a0aec0;
-  --accent: #56CCF2;
-  --accent-foreground: #0f1419;
-  --destructive: #f87171;
-  --destructive-foreground: #0f1419;
-  --border: #2d3748;
-  --input: #1a1f2e;
-  --ring: #56CCF2;
-  --chart-1: #56CCF2;
-  --chart-2: #A8E063;
-  --chart-3: #1a2847;
-  --chart-4: #FF9800;
-  --chart-5: #E040FB;
-  --sidebar: #1a1f2e;
-  --sidebar-foreground: #e5e7eb;
-  --sidebar-accent: #56CCF2;
-  --sidebar-accent-foreground: #0f1419;
-  --sidebar-border: #2d3748;
-  --sidebar-ring: #56CCF2;
+  /* Phantom Sapphire — marketing landing / dark mood.
+     Ground: Midnight Sapphire · Containers: Weathered Navy · Accent: Champagne Brass · Headlines: Ivory */
+  --primary: #C6AD7C; /* Champagne Brass */
+  --primary-foreground: #0B1320; /* Midnight Sapphire */
+  --sidebar-primary: #C6AD7C;
+  --sidebar-primary-foreground: #0B1320;
+  --background: #0B1320; /* Midnight Sapphire */
+  --foreground: #FDFBF7; /* Ivory */
+  --card: #1C2A3A; /* Weathered Navy */
+  --card-foreground: #FDFBF7;
+  --popover: #1C2A3A;
+  --popover-foreground: #FDFBF7;
+  --secondary: #223349;
+  --secondary-foreground: #D8D2C4;
+  --muted: #2C3E54;
+  --muted-foreground: #A9B0BC;
+  --accent: #C6AD7C; /* Champagne Brass */
+  --accent-foreground: #0B1320;
+  --success: #6E8F72; /* hedge green, lifted for dark ground */
+  --warning: #C29A4B; /* aged amber, lifted for dark ground */
+  --tealime: #C6AD7C;
+  --charge: #6E8F72;
+  --dusk: #0B1320;
+  --destructive: #C1614E; /* oxblood, lifted for dark ground */
+  --destructive-foreground: #FDFBF7;
+  --border: #2A3A4E;
+  --input: #16202F;
+  --ring: #C6AD7C;
+  --chart-1: #C6AD7C; /* brass */
+  --chart-2: #7E93A8; /* weathered blue */
+  --chart-3: #7C9A80; /* sage */
+  --chart-4: #C29A4B; /* amber */
+  --chart-5: #C1614E; /* oxblood */
+  --sidebar: #0E1826;
+  --sidebar-foreground: #FDFBF7;
+  --sidebar-accent: #C6AD7C;
+  --sidebar-accent-foreground: #0B1320;
+  --sidebar-border: #22334A;
+  --sidebar-ring: #C6AD7C;
 }
 
 @layer base {

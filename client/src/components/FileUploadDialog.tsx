@@ -70,6 +70,14 @@ export function FileUploadDialog({
     });
   };
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error ?? new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+
   const handleUpload = async () => {
     let allSucceeded = true;
 
@@ -88,6 +96,7 @@ export function FileUploadDialog({
       }, 300);
 
       try {
+        const fileContent = await readFileAsDataUrl(file);
         await createContract.mutateAsync({
           name: file.name.replace(/\.[^.]+$/, ""),
           fileName: file.name,
@@ -95,6 +104,7 @@ export function FileUploadDialog({
           fileSize: file.size,
           clientId: clientId === "none" ? null : Number(clientId),
           caseId: caseId === "none" ? null : Number(caseId),
+          fileContent,
         });
         await utils.contracts.list.invalidate();
         await utils.documents.list.invalidate();

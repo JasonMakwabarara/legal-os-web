@@ -107,13 +107,13 @@ export default function TemplateLibrary() {
   const getRiskLevelColor = (level?: string) => {
     switch (level) {
       case 'high':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warning/10 text-warning border-warning/20';
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/10 text-success border-success/20';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 

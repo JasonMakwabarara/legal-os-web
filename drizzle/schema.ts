@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json, tinyint, boolean, date } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, mediumtext, timestamp, varchar, decimal, json, tinyint, boolean, date } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -59,8 +59,15 @@ export const contracts = mysqlTable("contracts", {
   id: int("id").autoincrement().primaryKey(),
   firmId: int("firmId").notNull(),
   clientId: int("clientId"),
+  caseId: int("caseId"),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  /** Full extracted contract text (input to the AI review). */
+  originalText: mediumtext("originalText"),
+  /** Full text with [REDLINE] markers produced by the AI review. */
+  redlinedText: mediumtext("redlinedText"),
+  /** Short AI summary of the review. */
+  analysisSummary: text("analysisSummary"),
   status: mysqlEnum("status", ["draft", "review", "approved", "executed", "archived"]).default("draft").notNull(),
   riskLevel: mysqlEnum("riskLevel", ["low", "medium", "high"]).default("medium").notNull(),
   fileKey: varchar("fileKey", { length: 255 }),

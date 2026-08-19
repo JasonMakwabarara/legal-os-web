@@ -3,19 +3,16 @@ import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { getLoginUrl } from '@/const';
+import { getLoginUrl, getRegisterUrl } from '@/const';
 import InteractiveDemo from '@/components/InteractiveDemo';
 import {
   Brain,
   FileText,
-  Users,
-  Zap,
   Shield,
   CheckCircle2,
   ArrowRight,
   Sparkles,
   Lock,
-  Gauge,
   AlertTriangle,
 } from 'lucide-react';
 
@@ -59,40 +56,28 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: Brain,
-      title: 'AI Contract Analysis',
-      description: 'Upload an agreement and get clause extraction, plain-English explanations, and a structured risk summary in minutes',
-      color: 'from-blue-500 to-cyan-500',
+      title: 'Contract Intelligence',
+      description: 'Every agreement dissected in minutes — clause extraction, plain-English analysis, and a structured risk picture your whole firm can act on',
     },
     {
-      icon: FileText,
-      title: 'Automated Redlines',
-      description: 'Suggested rewrites that cap liability, narrow indemnities, and fix termination gaps — ready to accept or edit',
-      color: 'from-purple-500 to-pink-500',
+      title: 'Counsel-Grade Redlines',
+      description: 'Replacement language drafted to be accepted as-is: liability capped, indemnities narrowed, termination tightened. You remain the final word',
     },
     {
-      icon: Gauge,
-      title: 'Risk Scoring',
-      description: 'Every contract scored high, medium, or low with estimated exposure, so you triage the dangerous ones first',
-      color: 'from-red-500 to-rose-500',
+      title: 'Exposure, Quantified',
+      description: 'Every contract scored with estimated financial exposure, so the dangerous ones surface first — before they cost you',
     },
     {
-      icon: Users,
-      title: 'Matters & Clients Built In',
-      description: 'Light practice management included: link every review to a client and matter without a second subscription',
-      color: 'from-green-500 to-emerald-500',
+      title: 'Matters & Clients, Unified',
+      description: 'Every review filed under the right client and matter as a matter of course. Practice management is part of the fabric, not a second subscription',
     },
     {
-      icon: Sparkles,
-      title: 'Grounded Assistant',
-      description: 'Ask questions and get answers grounded in the contracts in your workspace — not generic chatbot output',
-      color: 'from-yellow-500 to-orange-500',
+      title: 'An Assistant That Knows Your Files',
+      description: 'Ask a question and get an answer grounded in your firm\'s own contracts — with the source named, never a chatbot\'s guess',
     },
     {
-      icon: Zap,
-      title: 'Playbooks',
-      description: 'Encode your firm\'s standard positions once, and every review redlines to the same standard',
-      color: 'from-indigo-500 to-blue-500',
+      title: 'Your Playbook, Enforced',
+      description: 'Encode the firm\'s standard positions once, and every review — by every associate — lands on the same standard',
     },
   ];
 
@@ -101,7 +86,7 @@ export default function LandingPage() {
       name: 'Starter',
       price: pricingBillingCycle === 'monthly' ? '99' : '990',
       period: pricingBillingCycle === 'monthly' ? '/firm/month' : '/firm/year',
-      description: 'Solo and 2–5 lawyer shops',
+      description: 'For solo practitioners and boutique firms',
       features: [
         'Firm-wide cockpit (not per seat)',
         '50 contract reviews / month',
@@ -114,13 +99,13 @@ export default function LandingPage() {
       name: 'Professional',
       price: pricingBillingCycle === 'monthly' ? '299' : '2990',
       period: pricingBillingCycle === 'monthly' ? '/firm/month' : '/firm/year',
-      description: 'Growing firms up to 25 lawyers',
+      description: 'For growing practices up to 25 lawyers',
       features: [
         'Unlimited contract reviews',
         'Playbooks and clause library',
         'Team roles and audit trail',
         'Priority support',
-        'Coming: Word add-in',
+        'Word add-in (beta)',
       ],
       highlighted: true,
     },
@@ -128,7 +113,7 @@ export default function LandingPage() {
       name: 'Enterprise',
       price: 'Custom',
       period: 'per firm',
-      description: 'Private inference and data residency',
+      description: 'Private inference, data residency, white glove',
       features: [
         'Everything in Professional',
         'SpiderNet inference plane',
@@ -161,21 +146,21 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-blue-950 to-slate-950 overflow-hidden">
+    <div className="min-h-screen bg-[#0B1320] overflow-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl"
+          className="absolute top-20 left-10 w-72 h-72 bg-[#C6AD7C]/10 rounded-full blur-3xl"
         animate={{ y: [0, 50, 0], x: [0, 30, 0] }}
         transition={{ duration: 8, repeat: Infinity }}
         />
         <motion.div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"
+          className="absolute bottom-20 right-10 w-96 h-96 bg-[#1C2A3A]/60 rounded-full blur-3xl"
         animate={{ y: [0, -50, 0], x: [0, -30, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
         />
         <motion.div
-          className="absolute top-1/2 left-1/2 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 w-80 h-80 bg-[#C6AD7C]/5 rounded-full blur-3xl"
         animate={{ y: [0, 30, 0], x: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
         />
@@ -183,7 +168,7 @@ export default function LandingPage() {
 
       {/* Navigation */}
       <motion.nav
-        className="fixed top-0 w-full bg-slate-950/40 backdrop-blur-xl border-b border-slate-800/50 z-50"
+        className="fixed top-0 w-full bg-[#0B1320]/70 backdrop-blur-xl border-b border-[#2A3A4E]/70 z-50"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6 }}
@@ -191,7 +176,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
             <img src="/logo.svg" alt="Legal OS" className="w-10 h-10" />
-            <span className="text-xl font-bold text-white">
+            <span className="text-xl font-bold text-[#FDFBF7]">
               Legal OS
             </span>
           </motion.div>
@@ -199,15 +184,15 @@ export default function LandingPage() {
             <Button
               variant="outline"
               onClick={() => (window.location.href = getLoginUrl())}
-              className="border-slate-600 text-slate-200 hover:bg-slate-800/50 font-semibold"
+              className="border-[#C6AD7C]/40 bg-transparent text-[#FDFBF7] hover:bg-[#1C2A3A] hover:text-[#FDFBF7] font-semibold"
             >
               Sign In
             </Button>
             <Button
-              onClick={() => (window.location.href = getLoginUrl())}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold shadow-lg shadow-blue-500/50"
+              onClick={() => (window.location.href = getRegisterUrl())}
+              className="bg-[#C6AD7C] hover:bg-[#D4BE92] text-[#0B1320] font-semibold shadow-lg shadow-[#C6AD7C]/20"
             >
-              Open Demo
+              Get Started
             </Button>
           </motion.div>
         </div>
@@ -222,27 +207,27 @@ export default function LandingPage() {
           animate="visible"
         >
           <motion.div variants={itemVariants} className="mb-4">
-            <span className="inline-block px-4 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/50 rounded-full text-blue-300 text-sm font-semibold backdrop-blur">
-              ✨ Priced per firm, not per seat
+            <span className="inline-block px-4 py-2 bg-[#C6AD7C]/10 border border-[#C6AD7C]/50 rounded-full text-[#C6AD7C] text-sm font-semibold backdrop-blur">
+              ✨ Powered by Advanced AI
             </span>
           </motion.div>
 
           <motion.h1
             variants={itemVariants}
-            className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight"
+            className="text-5xl md:text-6xl font-bold text-[#FDFBF7] mb-4 leading-tight"
           >
-            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">
-              AI Contract Review
+            <span className="bg-gradient-to-r from-[#C6AD7C] via-[#E3D3AC] to-[#C6AD7C] bg-clip-text text-transparent">
+              AI-Powered Legal Practice
             </span>
             <br />
-            <span className="text-slate-100">for Firms of 1–25 Lawyers</span>
+            <span className="text-[#FDFBF7]">Management Platform</span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="text-lg text-slate-300 mb-6 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg text-[#C8CFD9] mb-6 max-w-3xl mx-auto leading-relaxed"
           >
-            Upload an agreement, see risks and redlines, attach it to a matter and client, then ask a grounded assistant — with light practice management built in. One flat price for the whole firm.
+            Streamline contract review for English-language firms of 1–25 lawyers: upload an agreement, see risks and redlines, attach it to a matter and client, then ask a grounded assistant. Priced per firm, not per Am Law seat.
           </motion.p>
 
           <motion.div
@@ -251,17 +236,17 @@ export default function LandingPage() {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                onClick={() => (window.location.href = getLoginUrl())}
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-8 py-7 text-lg font-semibold gap-2 shadow-xl shadow-blue-500/50"
+                onClick={() => (window.location.href = getRegisterUrl())}
+                className="bg-[#C6AD7C] hover:bg-[#D4BE92] text-[#0B1320] px-8 py-7 text-lg font-semibold gap-2 shadow-xl shadow-[#C6AD7C]/20"
               >
-                Start demo <ArrowRight className="w-5 h-5" />
+                Get Started <ArrowRight className="w-5 h-5" />
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={scrollToDemo}
                 variant="outline"
-                className="border-slate-600 text-slate-200 hover:bg-slate-800/50 px-8 py-7 text-lg font-semibold backdrop-blur"
+                className="border-[#C6AD7C]/40 bg-transparent text-[#FDFBF7] hover:bg-[#1C2A3A] hover:text-[#FDFBF7] px-8 py-7 text-lg font-semibold backdrop-blur"
               >
                 Watch Demo
               </Button>
@@ -271,18 +256,18 @@ export default function LandingPage() {
           {/* Trust Badges */}
           <motion.div
             variants={itemVariants}
-            className="flex flex-wrap justify-center gap-8 text-slate-400 text-sm"
+            className="flex flex-wrap justify-center gap-8 text-[#A9B0BC] text-sm"
           >
             <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.1 }}>
-              <Lock className="w-5 h-5 text-emerald-400" />
-              <span>Private by design — demo data never leaves your browser</span>
+              <Lock className="w-5 h-5 text-[#C6AD7C]" />
+              <span>Private by design — per-firm data isolation</span>
             </motion.div>
             <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.1 }}>
-              <Shield className="w-5 h-5 text-emerald-400" />
+              <Shield className="w-5 h-5 text-[#C6AD7C]" />
               <span>Your documents are never used to train AI models</span>
             </motion.div>
             <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.1 }}>
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <CheckCircle2 className="w-5 h-5 text-[#C6AD7C]" />
               <span>Transparent pricing — no sales call required</span>
             </motion.div>
           </motion.div>
@@ -294,7 +279,7 @@ export default function LandingPage() {
           variants={floatingVariants}
           animate="animate"
         >
-          <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-700/50 rounded-2xl p-5 backdrop-blur-xl shadow-2xl">
+          <div className="bg-[#1C2A3A]/60 border border-[#2A3A4E] rounded-2xl p-5 backdrop-blur-xl shadow-2xl">
             <div className="grid grid-cols-3 gap-3">
               {[
                 { title: 'Smart Analysis', Icon: Brain },
@@ -305,11 +290,11 @@ export default function LandingPage() {
                 return (
                   <motion.div
                     key={i}
-                    className="h-20 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/60 transition-colors"
+                    className="h-20 bg-[#0E1826]/80 rounded-lg border border-[#C6AD7C]/30 flex flex-col items-center justify-center cursor-pointer hover:border-[#C6AD7C]/60 transition-colors"
                     whileHover={{ scale: 1.05 }}
                   >
-                    <Icon className="w-6 h-6 text-blue-400 mb-2" />
-                    <span className="text-xs text-slate-300 font-medium text-center px-2">{item.title}</span>
+                    <Icon className="w-6 h-6 text-[#C6AD7C] mb-2" />
+                    <span className="text-xs text-[#C8CFD9] font-medium text-center px-2">{item.title}</span>
                   </motion.div>
                 );
               })}
@@ -328,37 +313,29 @@ export default function LandingPage() {
           viewport={{ once: true }}
         >
           <motion.div variants={itemVariants} className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-white mb-3">
-              Powerful Features for Modern Law Firms
+            <h2 className="text-4xl font-bold text-[#FDFBF7] mb-3">
+              The Operating System for Your Practice
             </h2>
-            <p className="text-slate-400 text-base max-w-2xl mx-auto">
-              Everything you need to manage your legal practice efficiently and securely
+            <p className="text-[#A9B0BC] text-base max-w-2xl mx-auto">
+              From first upload to final signature — contract intelligence, matter management,
+              and a grounded assistant in one private workspace
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-4">
-            {features.map((feature, idx) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={idx}
-                  variants={itemVariants}
-                  whileHover={{ y: -4 }}
-                  className="group"
-                >
-                  <Card className="bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl p-4 h-full transition-all duration-300">
-                    <motion.div
-                      className={`w-10 h-10 rounded-lg bg-gradient-to-br ${feature.color} p-2 mb-3 shadow-lg`}
-                         whileHover={{ rotate: 10, scale: 1.1 }}
-                    >
-                      <Icon className="w-full h-full text-white" />
-                    </motion.div>
-                    <h3 className="text-base font-bold text-white mb-2">{feature.title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
-                  </Card>
-                </motion.div>
-              );
-            })}
+            {features.map((feature, idx) => (
+              <motion.div
+                key={idx}
+                variants={itemVariants}
+                whileHover={{ y: -4 }}
+                className="group"
+              >
+                <Card className="bg-[#1C2A3A]/60 border-[#2A3A4E] hover:border-[#C6AD7C]/50 backdrop-blur-xl p-5 h-full transition-all duration-300">
+                  <h3 className="text-base font-bold text-[#FDFBF7] mb-2">{feature.title}</h3>
+                  <p className="text-[#A9B0BC] text-sm leading-relaxed">{feature.description}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       </section>
@@ -373,12 +350,12 @@ export default function LandingPage() {
           viewport={{ once: true }}
         >
           <motion.div variants={itemVariants} className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-white mb-3">
+            <h2 className="text-4xl font-bold text-[#FDFBF7] mb-3">
               Experience Legal OS in Action
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Watch how Legal OS transforms your legal workflow with intelligent contract analysis,
-              risk scoring, and AI-powered insights
+            <p className="text-[#A9B0BC] text-lg max-w-2xl mx-auto">
+              The review that used to take an afternoon: analysis, quantified exposure,
+              and counsel-grade redlines — filed under the right matter
             </p>
           </motion.div>
 
@@ -389,7 +366,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-900/50 to-blue-900/30 relative">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0E1826]/60 relative">
         <motion.div
           className="max-w-6xl mx-auto"
           variants={containerVariants}
@@ -399,7 +376,7 @@ export default function LandingPage() {
         >
           <motion.h2
             variants={itemVariants}
-            className="text-4xl font-bold text-white mb-10 text-center"
+            className="text-4xl font-bold text-[#FDFBF7] mb-10 text-center"
           >
             Built for Firms Like Yours
           </motion.h2>
@@ -410,16 +387,16 @@ export default function LandingPage() {
                 key={idx}
                 variants={itemVariants}
                 whileHover={{ y: -4 }}
-                className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 backdrop-blur-xl"
+                className="bg-[#1C2A3A]/60 border border-[#2A3A4E] rounded-xl p-4 backdrop-blur-xl"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">{useCase.avatar}</span>
                   <div>
-                    <p className="font-semibold text-white text-sm">{useCase.name}</p>
-                    <p className="text-xs text-blue-300">{useCase.role}</p>
+                    <p className="font-semibold text-[#FDFBF7] text-sm">{useCase.name}</p>
+                    <p className="text-xs text-[#C6AD7C]">{useCase.role}</p>
                   </div>
                 </div>
-                <p className="text-slate-300 text-sm leading-relaxed">{useCase.content}</p>
+                <p className="text-[#C8CFD9] text-sm leading-relaxed">{useCase.content}</p>
               </motion.div>
             ))}
           </div>
@@ -436,8 +413,8 @@ export default function LandingPage() {
           viewport={{ once: true }}
         >
           <motion.div variants={itemVariants} className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-white mb-2">Simple, Transparent Pricing</h2>
-            <p className="text-slate-400 text-base mb-6">No sales call. No quote gate. Prices on the page — one flat rate for your whole firm.</p>
+            <h2 className="text-4xl font-bold text-[#FDFBF7] mb-2">Simple, Transparent Pricing</h2>
+            <p className="text-[#A9B0BC] text-base mb-6">No sales call. No quote gate. Prices on the page — one flat rate for your whole firm.</p>
 
             {/* Billing Toggle */}
             <div className="flex justify-center gap-4 mb-8">
@@ -447,8 +424,8 @@ export default function LandingPage() {
                 onClick={() => setPricingBillingCycle('monthly')}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                   pricingBillingCycle === 'monthly'
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50'
-                    : 'bg-slate-800/50 text-slate-400 hover:text-white'
+                    ? 'bg-[#C6AD7C] text-[#0B1320] shadow-lg shadow-[#C6AD7C]/20'
+                    : 'bg-[#1C2A3A]/60 text-[#A9B0BC] hover:text-[#FDFBF7]'
                 }`}
               >
                 Monthly
@@ -459,8 +436,8 @@ export default function LandingPage() {
                 onClick={() => setPricingBillingCycle('yearly')}
                 className={`px-6 py-2 rounded-lg font-semibold transition-all ${
                   pricingBillingCycle === 'yearly'
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50'
-                    : 'bg-slate-800/50 text-slate-400 hover:text-white'
+                    ? 'bg-[#C6AD7C] text-[#0B1320] shadow-lg shadow-[#C6AD7C]/20'
+                    : 'bg-[#1C2A3A]/60 text-[#A9B0BC] hover:text-[#FDFBF7]'
                 }`}
               >
                 Yearly <span className="text-xs ml-1">(Save 20%)</span>
@@ -479,13 +456,13 @@ export default function LandingPage() {
                 <Card
                   className={`p-5 transition-all duration-300 relative overflow-hidden h-full ${
                     plan.highlighted
-                      ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border-blue-500/50 shadow-2xl shadow-blue-500/30 scale-105'
-                      : 'bg-slate-800/30 border-slate-700/50 hover:border-blue-500/50 backdrop-blur-xl'
+                      ? 'bg-[#1C2A3A] border-[#C6AD7C]/60 shadow-2xl shadow-[#C6AD7C]/20 scale-105'
+                      : 'bg-[#1C2A3A]/60 border-[#2A3A4E] hover:border-[#C6AD7C]/50 backdrop-blur-xl'
                   }`}
                 >
                   {plan.highlighted && (
                     <motion.div
-                      className="absolute top-0 right-0 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold rounded-bl-lg"
+                      className="absolute top-0 right-0 px-4 py-2 bg-[#C6AD7C] text-[#0B1320] text-xs font-bold rounded-bl-lg"
                       animate={{ y: [0, 5, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
@@ -493,28 +470,28 @@ export default function LandingPage() {
                     </motion.div>
                   )}
 
-                  <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
-                  <p className={`mb-4 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
+                  <h3 className="text-lg font-bold text-[#FDFBF7] mb-1">{plan.name}</h3>
+                  <p className={`mb-4 text-sm ${plan.highlighted ? 'text-[#D8D2C4]' : 'text-[#A9B0BC]'}`}>
                     {plan.description}
                   </p>
 
                   <div className="mb-4">
-                    <span className="text-3xl font-bold text-white">${plan.price}</span>
-                    <span className={`text-xs ${plan.highlighted ? 'text-blue-100' : 'text-slate-400'}`}>
+                    <span className="text-3xl font-bold text-[#FDFBF7]">${plan.price}</span>
+                    <span className={`text-xs ${plan.highlighted ? 'text-[#D8D2C4]' : 'text-[#A9B0BC]'}`}>
                       {' '}{plan.period}
                     </span>
                   </div>
 
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mb-4">
                     <Button
-                      onClick={() => (window.location.href = getLoginUrl())}
+                      onClick={() => (window.location.href = getRegisterUrl())}
                       className={`w-full font-semibold ${
                         plan.highlighted
-                          ? 'bg-white text-blue-600 hover:bg-slate-100 shadow-lg'
-                          : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white'
+                          ? 'bg-[#C6AD7C] hover:bg-[#D4BE92] text-[#0B1320] shadow-lg shadow-[#C6AD7C]/20'
+                          : 'bg-transparent border border-[#C6AD7C]/40 text-[#FDFBF7] hover:bg-[#C6AD7C]/10'
                       }`}
                     >
-                      Start demo
+                      Get Started
                     </Button>
                   </motion.div>
 
@@ -523,11 +500,11 @@ export default function LandingPage() {
                       <motion.li
                         key={fidx}
                         className={`flex items-center gap-2 text-sm ${
-                          plan.highlighted ? 'text-white' : 'text-slate-300'
+                          plan.highlighted ? 'text-[#FDFBF7]' : 'text-[#C8CFD9]'
                         }`}
                         whileHover={{ x: 5 }}
                       >
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-[#C6AD7C] flex-shrink-0" />
                         <span>{feature}</span>
                       </motion.li>
                     ))}
@@ -549,8 +526,8 @@ export default function LandingPage() {
           viewport={{ once: true }}
         >
           <motion.div variants={itemVariants} className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-white mb-3">Why Per-Firm Pricing</h2>
-            <p className="text-slate-400 text-base max-w-2xl mx-auto">
+            <h2 className="text-4xl font-bold text-[#FDFBF7] mb-3">Why Per-Firm Pricing</h2>
+            <p className="text-[#A9B0BC] text-base max-w-2xl mx-auto">
               Legal AI is usually priced per seat. For a small firm, the seats add up faster than the value does.
             </p>
           </motion.div>
@@ -558,23 +535,23 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <motion.div
               variants={itemVariants}
-              className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-6 backdrop-blur-xl"
+              className="bg-[#1C2A3A]/60 border border-[#2A3A4E] rounded-xl p-6 backdrop-blur-xl"
             >
-              <h3 className="text-lg font-bold text-slate-200 mb-4">The per-seat stack (3-lawyer firm)</h3>
-              <ul className="space-y-3 text-sm text-slate-300">
+              <h3 className="text-lg font-bold text-[#D8D2C4] mb-4">The per-seat stack (3-lawyer firm)</h3>
+              <ul className="space-y-3 text-sm text-[#C8CFD9]">
                 <li className="flex justify-between gap-4">
                   <span>Contract AI, per seat</span>
-                  <span className="text-slate-400">~$99–160 × 3 seats</span>
+                  <span className="text-[#A9B0BC]">~$99–160 × 3 seats</span>
                 </li>
                 <li className="flex justify-between gap-4">
                   <span>Practice management, per seat</span>
-                  <span className="text-slate-400">~$39–139 × 3 seats</span>
+                  <span className="text-[#A9B0BC]">~$39–139 × 3 seats</span>
                 </li>
                 <li className="flex justify-between gap-4">
                   <span>AI add-on for the PM tool, per seat</span>
-                  <span className="text-slate-400">~$49–59 × 3 seats</span>
+                  <span className="text-[#A9B0BC]">~$49–59 × 3 seats</span>
                 </li>
-                <li className="flex justify-between gap-4 border-t border-slate-700/50 pt-3 font-semibold text-white">
+                <li className="flex justify-between gap-4 border-t border-[#2A3A4E] pt-3 font-semibold text-[#FDFBF7]">
                   <span>Typical total</span>
                   <span>$400–500+/month, climbing per hire</span>
                 </li>
@@ -583,82 +560,40 @@ export default function LandingPage() {
 
             <motion.div
               variants={itemVariants}
-              className="bg-gradient-to-br from-blue-600/30 to-cyan-600/30 border border-blue-500/50 rounded-xl p-6 backdrop-blur-xl"
+              className="bg-[#1C2A3A] border border-[#C6AD7C]/50 rounded-xl p-6 backdrop-blur-xl"
             >
-              <h3 className="text-lg font-bold text-white mb-4">Legal OS</h3>
-              <ul className="space-y-3 text-sm text-blue-50">
+              <h3 className="text-lg font-bold text-[#FDFBF7] mb-4">Legal OS</h3>
+              <ul className="space-y-3 text-sm text-[#D8D2C4]">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#C6AD7C] flex-shrink-0" />
                   <span>$99–299/month flat for the whole firm</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#C6AD7C] flex-shrink-0" />
                   <span>Contract review, redlines, and matters in one product</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#C6AD7C] flex-shrink-0" />
                   <span>Add a lawyer or paralegal — the price stays the same</span>
                 </li>
-                <li className="flex items-center gap-2 border-t border-blue-500/30 pt-3 font-semibold text-white">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <li className="flex items-center gap-2 border-t border-[#C6AD7C]/30 pt-3 font-semibold text-[#FDFBF7]">
+                  <CheckCircle2 className="w-5 h-5 text-[#C6AD7C] flex-shrink-0" />
                   <span>One subscription. One number in the budget.</span>
                 </li>
               </ul>
             </motion.div>
           </div>
 
-          <motion.p variants={itemVariants} className="text-xs text-slate-500 text-center mt-6 max-w-3xl mx-auto">
+          <motion.p variants={itemVariants} className="text-xs text-[#6B7686] text-center mt-6 max-w-3xl mx-auto">
             Comparison based on publicly reported per-seat prices for leading contract-AI and practice-management tools as of mid-2026.
             Most vendors quote pricing privately, so figures vary by source and firm size.
           </motion.p>
         </motion.div>
       </section>
 
-      {/* Roadmap Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-900/50 to-blue-900/30 relative">
-        <motion.div
-          className="max-w-5xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <motion.div variants={itemVariants} className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-white mb-3">What We're Building Next</h2>
-            <p className="text-slate-400 text-base max-w-2xl mx-auto">
-              We'd rather show you the roadmap than claim it's already done.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <motion.div variants={itemVariants} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 backdrop-blur-xl">
-              <FileText className="w-8 h-8 text-blue-400 mb-3" />
-              <h3 className="text-base font-bold text-white mb-2">Microsoft Word Add-in</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Review and redline without leaving Word — where contracts actually live. In development for Professional plans.
-              </p>
-            </motion.div>
-            <motion.div variants={itemVariants} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 backdrop-blur-xl">
-              <Zap className="w-8 h-8 text-cyan-400 mb-3" />
-              <h3 className="text-base font-bold text-white mb-2">Hosted AI Backend</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                Live inference for uploads at scale, with per-firm data isolation. Today's demo runs entirely in your browser.
-              </p>
-            </motion.div>
-            <motion.div variants={itemVariants} className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-5 backdrop-blur-xl">
-              <Shield className="w-8 h-8 text-emerald-400 mb-3" />
-              <h3 className="text-base font-bold text-white mb-2">SOC 2 Readiness Program</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
-                A published security page, audit trail, and our no-training-on-your-data pledge in writing — launching alongside hosted plans.
-              </p>
-            </motion.div>
-          </div>
-        </motion.div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 blur-3xl" />
+        <div className="absolute inset-0 bg-[#C6AD7C]/5 blur-3xl" />
         <motion.div
           className="max-w-4xl mx-auto text-center relative z-10"
           variants={containerVariants}
@@ -668,16 +603,16 @@ export default function LandingPage() {
         >
           <motion.h2
             variants={itemVariants}
-            className="text-5xl font-bold text-white mb-6"
+            className="text-5xl font-bold text-[#FDFBF7] mb-6"
           >
             Ready to Transform Your Legal Practice?
           </motion.h2>
           <motion.p
             variants={itemVariants}
-            className="text-blue-100 mb-10 text-xl leading-relaxed"
+            className="text-[#D8D2C4] mb-10 text-xl leading-relaxed"
           >
-            Open the contract cockpit demo — no credit card, no sign-up, no server required. Data stays in this browser.
-            Then try it on your own NDA: the upload flow works right inside the demo.
+            A private workspace for your firm, a full review of your first agreement,
+            and an assistant that knows your files — live in minutes. No credit card required.
           </motion.p>
           <motion.div
             variants={itemVariants}
@@ -685,97 +620,97 @@ export default function LandingPage() {
             whileTap={{ scale: 0.95 }}
           >
             <Button
-              onClick={() => (window.location.href = getLoginUrl())}
-              className="bg-white text-blue-600 hover:bg-slate-100 px-10 py-7 text-lg font-bold shadow-xl shadow-white/20"
+              onClick={() => (window.location.href = getRegisterUrl())}
+              className="bg-[#C6AD7C] hover:bg-[#D4BE92] text-[#0B1320] px-10 py-7 text-lg font-bold shadow-xl shadow-[#C6AD7C]/20"
             >
-              Open demo <ArrowRight className="w-5 h-5 ml-2" />
+              Get Started <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </motion.div>
         </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/50 bg-slate-950/50 backdrop-blur-xl py-16 px-4 sm:px-6 lg:px-8">
+      <footer className="border-t border-[#2A3A4E]/70 bg-[#0E1826]/60 backdrop-blur-xl py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
-              <h4 className="text-white font-bold mb-6 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-400" />
+              <h4 className="text-[#FDFBF7] font-bold mb-6 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#C6AD7C]" />
                 Product
               </h4>
-              <ul className="space-y-3 text-slate-400 text-sm">
+              <ul className="space-y-3 text-[#A9B0BC] text-sm">
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Features
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Pricing
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Security
                   </a>
                 </li>
               </ul>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
-              <h4 className="text-white font-bold mb-6">Company</h4>
-              <ul className="space-y-3 text-slate-400 text-sm">
+              <h4 className="text-[#FDFBF7] font-bold mb-6">Company</h4>
+              <ul className="space-y-3 text-[#A9B0BC] text-sm">
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     About
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Blog
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Contact
                   </a>
                 </li>
               </ul>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
-              <h4 className="text-white font-bold mb-6">Legal</h4>
-              <ul className="space-y-3 text-slate-400 text-sm">
+              <h4 className="text-[#FDFBF7] font-bold mb-6">Legal</h4>
+              <ul className="space-y-3 text-[#A9B0BC] text-sm">
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Privacy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Terms
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Compliance
                   </a>
                 </li>
               </ul>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}>
-              <h4 className="text-white font-bold mb-6">Support</h4>
-              <ul className="space-y-3 text-slate-400 text-sm">
+              <h4 className="text-[#FDFBF7] font-bold mb-6">Support</h4>
+              <ul className="space-y-3 text-[#A9B0BC] text-sm">
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Help Center
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     Documentation
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-blue-400 transition">
+                  <a href="#" className="hover:text-[#C6AD7C] transition">
                     API Docs
                   </a>
                 </li>
@@ -783,14 +718,14 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          <div className="border-t border-slate-800/50 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="border-t border-[#2A3A4E]/70 pt-8 flex flex-col md:flex-row justify-between items-center">
             <motion.div className="flex items-center gap-3 mb-4 md:mb-0" whileHover={{ scale: 1.05 }}>
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg">
-                <FileText className="w-5 h-5 text-slate-950 font-bold" />
+              <div className="w-8 h-8 bg-[#C6AD7C] rounded-lg flex items-center justify-center shadow-lg">
+                <FileText className="w-5 h-5 text-[#0B1320] font-bold" />
               </div>
-              <span className="text-white font-bold">Legal OS</span>
+              <span className="text-[#FDFBF7] font-bold">Legal OS</span>
             </motion.div>
-            <p className="text-slate-400 text-sm">
+            <p className="text-[#A9B0BC] text-sm">
               © 2026 Legal OS. All rights reserved. Powered by SpiderNetOS.
             </p>
           </div>

@@ -9,7 +9,7 @@ import { useLocation, useParams } from 'wouter';
 import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { formatCurrency } from '@/lib/mock-data';
+import { formatCurrency, getRiskLevelColor } from '@/lib/mock-data';
 import { toast } from 'sonner';
 
 export default function ContractDetail() {
@@ -136,7 +136,7 @@ export default function ContractDetail() {
                 <FileText className="w-5 h-5 text-accent" />
                 Original vs redline
               </CardTitle>
-              <CardDescription>Suggested changes are marked [REDLINE]. This is a demo review, not legal advice.</CardDescription>
+              <CardDescription>AI-suggested changes are marked [REDLINE]. Review before use — not legal advice.</CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="compare" className="w-full">
@@ -173,7 +173,7 @@ export default function ContractDetail() {
                 <div key={risk.id} className="p-4 border border-border rounded-lg">
                   <div className="flex items-start justify-between mb-2 gap-3">
                     <h4 className="font-semibold text-foreground">{risk.issue}</h4>
-                    <Badge>{risk.level.toUpperCase()}</Badge>
+                    <Badge className={getRiskLevelColor(risk.level)}>{risk.level.toUpperCase()}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">{risk.recommendation}</p>
                   <div className="flex items-center justify-between text-xs">
@@ -240,7 +240,7 @@ export default function ContractDetail() {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Risk</p>
-                <Badge>{contract.riskLevel.toUpperCase()}</Badge>
+                <Badge className={getRiskLevelColor(contract.riskLevel)}>{contract.riskLevel.toUpperCase()}</Badge>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Total exposure</p>
