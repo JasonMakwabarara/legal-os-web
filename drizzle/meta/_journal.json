@@ -71,6 +71,13 @@
       "when": 1778491237786,
       "tag": "0009_pink_khan",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787119767857,
+      "tag": "0010_high_red_skull",
+      "breakpoints": true
     }
   ]
 }

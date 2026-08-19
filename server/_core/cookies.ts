@@ -39,10 +39,16 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
+  const secure = isSecureRequest(req);
+
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    // Browsers reject SameSite=None cookies on insecure origins, which would
+    // silently drop the session on plain-HTTP localhost. Lax is correct for
+    // the single-origin app (and still sent on top-level navigations from the
+    // marketing site); None+Secure is kept for HTTPS deployments.
+    sameSite: secure ? "none" : "lax",
+    secure,
   };
 }

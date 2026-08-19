@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { isDemoMode } from '@/lib/demo-mode';
 
 interface TourStep {
   id: string;
@@ -11,17 +12,30 @@ interface TourStep {
 }
 
 const TOUR_STEPS: TourStep[] = [
-  {
-    id: 'welcome',
-    title: 'Welcome to the Legal OS demo',
-    description: 'You\'re signed in as Rivera & Hale LLP, a seeded demo firm. Everything you see lives in this browser — nothing is sent to a server.',
-  },
-  {
-    id: 'cockpit',
-    title: 'The contract cockpit',
-    description: 'Active reviews, risk summary, and agent activity at a glance. Click the TechCorp Service Agreement to see the full review.',
-    target: 'nav-cockpit',
-  },
+  isDemoMode()
+    ? {
+        id: 'welcome',
+        title: 'Welcome to the Legal OS demo',
+        description: 'You\'re signed in as Rivera & Hale LLP, a seeded demo firm. Everything you see lives in this browser — nothing is sent to a server.',
+      }
+    : {
+        id: 'welcome',
+        title: 'Welcome to Legal OS',
+        description: 'This is your firm\'s private workspace. Upload an agreement and the review — risks, quantified exposure, redlines — comes back in minutes.',
+      },
+  isDemoMode()
+    ? {
+        id: 'cockpit',
+        title: 'The contract cockpit',
+        description: 'Active reviews, risk summary, and agent activity at a glance. Click the TechCorp Service Agreement to see the full review.',
+        target: 'nav-cockpit',
+      }
+    : {
+        id: 'cockpit',
+        title: 'The contract cockpit',
+        description: 'Active reviews, risk summary, and agent activity at a glance. Everything you upload lands here.',
+        target: 'nav-cockpit',
+      },
   {
     id: 'contract',
     title: 'Risks and redlines',
@@ -46,11 +60,17 @@ const TOUR_STEPS: TourStep[] = [
     description: 'Standard positions — liability caps, indemnity limits, termination mechanics — that every review redlines toward.',
     target: 'nav-playbook',
   },
-  {
-    id: 'complete',
-    title: 'You\'re all set',
-    description: 'Try uploading your own NDA from the cockpit, or reset the demo data any time from the banner above.',
-  },
+  isDemoMode()
+    ? {
+        id: 'complete',
+        title: 'You\'re all set',
+        description: 'Try uploading your own NDA from the cockpit, or reset the demo data any time from the banner above.',
+      }
+    : {
+        id: 'complete',
+        title: 'You\'re all set',
+        description: 'Upload your first agreement from the cockpit — drag in a .docx, .pdf, or .txt and the review begins immediately.',
+      },
 ];
 
 interface OnboardingTourProps {

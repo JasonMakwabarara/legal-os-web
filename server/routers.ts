@@ -128,9 +128,9 @@ export const appRouter = router({
         if (ctx.user.firmId) {
           return { firmId: ctx.user.firmId, message: 'User already assigned to firm' };
         }
-        // Create new firm and assign user
+        // Create new firm and assign user as its admin
         const firm = await db.createFirm({ name: input.firmName });
-        await db.assignUserToFirm(ctx.user.id, firm.id);
+        await db.assignUserToFirm(ctx.user.id, firm.id, 'admin');
         return { firmId: firm.id, message: 'Firm created and user assigned' };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -1052,7 +1052,7 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'User already assigned to a firm' });
         }
 
-        // Create new firm
+        // Create new firm; the creator becomes its admin.
         const firm = await db.createFirm({
           name: input.name,
           email: input.email,
@@ -1061,8 +1061,7 @@ export const appRouter = router({
           website: input.website,
         });
 
-        // Assign user to firm
-        await db.assignUserToFirm(ctx.user.id, firm.id);
+        await db.assignUserToFirm(ctx.user.id, firm.id, 'admin');
 
         return firm;
       }),

@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
+    "dev:win": "tsx server/_core/index.ts",
     "dev:web": "vite --mode demo",
     "dev:addin": "vite --config addin/vite.config.ts",
     "build": "vite build && vite build --config addin/vite.config.ts && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",

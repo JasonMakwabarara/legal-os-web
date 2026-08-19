@@ -1,5 +1,8 @@
 export const ENV = {
-  appId: process.env.VITE_APP_ID ?? "",
+  // Stable identifier embedded in session JWTs. VITE_APP_ID is a legacy
+  // override; without the fallback, sessions sign with an empty appId and
+  // fail verification on every subsequent request.
+  appId: process.env.VITE_APP_ID || "legal-os",
   cookieSecret: process.env.JWT_SECRET ?? "",
   databaseUrl: process.env.DATABASE_URL ?? "",
   oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",

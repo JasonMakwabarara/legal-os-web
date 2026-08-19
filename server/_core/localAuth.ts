@@ -62,8 +62,9 @@ export function verifyPassword(password: string, storedHash: string) {
 
 /**
  * Create a new email/password account. Returns the created user, or null when
- * the email is already taken. New registrants become admins of their own
- * (not-yet-created) firm; teammates join via firm invitations instead.
+ * the email is already taken. Accounts start as plain users; creating a firm
+ * promotes the creator to admin, while accepting an invitation joins an
+ * existing firm without elevated rights.
  */
 export async function registerLocalUser(input: {
   email: string;
@@ -84,7 +85,7 @@ export async function registerLocalUser(input: {
     email,
     name: input.name.trim() || email,
     loginMethod: "local",
-    role: "admin",
+    role: "user",
     lastSignedIn: new Date(),
   });
 

@@ -297,10 +297,17 @@ export async function createFirm(data: typeof firms.$inferInsert) {
   return { id: result[0].insertId };
 }
 
-export async function assignUserToFirm(userId: number, firmId: number) {
+export async function assignUserToFirm(
+  userId: number,
+  firmId: number,
+  role?: "user" | "admin" | "lawyer" | "paralegal"
+) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.update(users).set({ firmId }).where(eq(users.id, userId));
+  return db
+    .update(users)
+    .set(role ? { firmId, role } : { firmId })
+    .where(eq(users.id, userId));
 }
 
 // Integration functions
