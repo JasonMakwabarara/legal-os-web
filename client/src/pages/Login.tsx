@@ -75,7 +75,11 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0B1320] text-[#FDFBF7] flex items-center justify-center px-4 py-12">
+    <main className="min-h-screen bg-[#0B1320] text-[#FDFBF7] flex flex-col items-center justify-center px-4 py-12">
+      {/* The Lens on the midnight backdrop — the brand moment of the
+          Sapphire-to-Yacht-Club transition. Decorative: the card title names
+          the product, so it is hidden from assistive tech. */}
+      <img src="/logo.svg" alt="" aria-hidden="true" className="w-14 h-14 shrink-0 mb-6" />
       <Card className="w-full max-w-md border-[#2A3A4E] bg-[#1C2A3A] text-[#FDFBF7] shadow-2xl shadow-black/40">
         <CardHeader>
           <CardTitle className="text-2xl text-[#FDFBF7]" style={serif}>
