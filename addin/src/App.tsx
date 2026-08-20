@@ -99,9 +99,19 @@ export default function App() {
   return (
     <div className="pane">
       <header className="pane-header">
-        <div>
-          <p className="brand">Legal OS</p>
-          <p className="brand-sub">Contract review</p>
+        <div className="brand-lockup">
+          {/* The Lens, sitting directly on the navy header — no tile needed. */}
+          <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+            <circle
+              cx="32" cy="32" r="20" fill="none" stroke="#C6AD7C" strokeWidth="5"
+              strokeDasharray="22 9.4" transform="rotate(-90 32 32)"
+            />
+            <circle cx="32" cy="32" r="5.5" fill="#C6AD7C" />
+          </svg>
+          <div>
+            <p className="brand">Legal OS</p>
+            <p className="brand-sub">Contract review</p>
+          </div>
         </div>
         {user && (
           <button className="btn-ghost" onClick={signOut} title={user.email ?? undefined}>

@@ -51,6 +51,18 @@ body {
   justify-content: space-between;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
 .brand {
   font-family: Georgia, "Playfair Display", "Times New Roman", serif;
   font-size: 18px;

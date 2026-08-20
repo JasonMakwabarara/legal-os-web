@@ -129,19 +129,16 @@ export default function LandingPage() {
       name: 'Solo practitioner',
       role: 'Triage NDAs in minutes',
       content: 'Upload an NDA, see the three clauses that matter, and send back a redline the same afternoon — without hiring a second pair of eyes.',
-      avatar: '⚖️',
     },
     {
       name: 'Small firm, 2–5 lawyers',
       role: 'One price for the whole firm',
       content: 'Everyone reviews under one flat plan. No per-seat maths when a paralegal or a new associate joins the matter.',
-      avatar: '🤝',
     },
     {
       name: 'Growing practice, up to 25',
       role: 'Consistent positions with playbooks',
       content: 'Encode the firm\'s standard positions once; every associate redlines to the same standard, with an audit trail.',
-      avatar: '📚',
     },
   ];
 
@@ -175,7 +172,7 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <motion.div className="flex items-center gap-2" whileHover={{ scale: 1.05 }}>
-            <img src="/logo.svg" alt="Legal OS" className="w-10 h-10" />
+            <img src="/logo.svg" alt="Legal OS" className="w-10 h-10 shrink-0" />
             <span className="text-xl font-bold text-[#FDFBF7]">
               Legal OS
             </span>
@@ -389,12 +386,10 @@ export default function LandingPage() {
                 whileHover={{ y: -4 }}
                 className="bg-[#1C2A3A]/60 border border-[#2A3A4E] rounded-xl p-4 backdrop-blur-xl"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">{useCase.avatar}</span>
-                  <div>
-                    <p className="font-semibold text-[#FDFBF7] text-sm">{useCase.name}</p>
-                    <p className="text-xs text-[#C6AD7C]">{useCase.role}</p>
-                  </div>
+                <div className="mb-3">
+                  <div className="w-8 h-px bg-[#C6AD7C] mb-3" />
+                  <p className="font-semibold text-[#FDFBF7] text-sm">{useCase.name}</p>
+                  <p className="text-xs text-[#C6AD7C] mt-0.5">{useCase.role}</p>
                 </div>
                 <p className="text-[#C8CFD9] text-sm leading-relaxed">{useCase.content}</p>
               </motion.div>
